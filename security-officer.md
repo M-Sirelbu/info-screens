@@ -1,102 +1,127 @@
 ## Overview
 
 The Race Control interface is used to manage the race in real time.  
-The safety officer starts the race, monitors its progress, controls flag signals, and ends the race.
+The safety officer authenticates before access, starts the race, controls race modes, responds to hazards, and ends the session.
 
-All actions go through the server, which distributes information to all connected screens.
+All actions are sent to the server, which distributes updates to all connected screens.
+
+---
+
+## Authentication
+
+Before using the interface, the safety officer must enter an access key.
+
+- The key is sent to the server (`auth:login`)
+- If incorrect:
+  - the server responds after 500ms delay
+  - an error message is shown
+- If correct:
+  - the real-time connection is established
 
 ---
 
 ## Starting the race
 
-The safety officer starts the race by pressing the start button.  
-The system sends information to the server about which session is being started.
+The safety officer starts the race using the start command.
 
-The server confirms the start and notifies all connected screens.
+Client sends:
+- `race:start`
 
-After that:
-- the front desk interface is locked  
-- editing drivers is no longer allowed  
-- the timer starts  
-- all screens switch to race mode  
+Server actions:
+- sets race mode to "safe"
+- starts the timer
+- switches all displays to current race
+- locks front desk editing
 
 ---
 
-## Timer and time tracking
+## Timer and race state
 
-After the race starts, the server manages the timing.  
-The safety officer does not calculate time manually.
+The server manages the timer and race state.
 
-The server continuously sends updates about the elapsed time.  
+Server sends:
+- `race:status` (idle / running / finished)
+- `timer:update` (remaining time)
+
 The Race Control interface displays this information.
 
 ---
 
-## Monitoring the race
+## Race mode control
 
-During the race, the server collects lap data (e.g. how many laps each car has completed).  
-The Race Control interface receives this data and displays it as a leaderboard.
+The safety officer controls race modes:
 
-The safety officer does not enter lap data manually.
+- Safe → green
+- Hazard → yellow
+- Danger → red
+- Finish → chequered
+
+Client sends:
+- `race:mode`
+  - mode: "safe" | "hazard" | "danger" | "finish"
+
+Server:
+- broadcasts mode to all screens
+- updates flag display in real time
 
 ---
 
-## Flag control
+## Hazard handling
 
-The safety officer can select the active track flag (e.g. green, yellow, red).
+If a dangerous situation occurs:
 
-When a flag is selected, the information is sent to the server.  
-The server then distributes the updated flag to all screens.
+Client sends:
+- `race:mode` = "danger" or "hazard"
 
-This ensures that all participants see the same flag state.
-
----
-
-## Hazard notification
-
-If a dangerous situation occurs on the track, the safety officer can trigger a warning.
-
-This information is sent to the server, which then broadcasts it to all screens.
-
-As a result:
-- a warning message is displayed  
-- the flag may be updated automatically (e.g. yellow flag)  
+Server:
+- updates all screens
+- ensures drivers receive correct instructions
 
 ---
 
 ## Ending the race
 
-The safety officer ends the race using the stop command.
+The race ends either:
+- when the timer reaches zero
+- or when the safety officer finishes the race
 
-The server:
-- stops the timer  
-- calculates the results  
-- sends results to all screens  
+Client sends:
+- `race:finish`
 
-After that:
-- the final leaderboard is displayed  
-- the race is considered finished  
+Server:
+- sets mode to "finish"
+- stops timer
+- calculates results
+- sends leaderboard to all screens
+
+After finish mode:
+- race mode cannot be changed
 
 ---
 
-## Preparing the next race
+## Ending the session
 
-After the race ends, the safety officer prepares the next session.
+After all cars return to the pit lane:
 
-The server updates the session list and sends it to all interfaces.
+Client sends:
+- `session:end`
 
-The safety officer can then start the next race cycle.
+Server:
+- prepares next session
+- updates next race screen
+- sets system to safe state
 
 ---
 
 ## Summary
 
-Race Control (Safety Officer):
-- starts and ends the race  
-- controls flags  
-- responds to hazards  
+Safety Officer:
+- authenticates before access
+- starts and finishes races
+- controls race modes
+- ensures safety
 
 Server:
-- manages time and lap data  
-- calculates results  
-- distributes information to all screens  
+- manages race state and timer
+- calculates lap results
+- distributes real-time updates to all screens
