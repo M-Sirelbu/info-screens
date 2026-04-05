@@ -36,6 +36,7 @@ When a flag is selected:
 
 ## What the server does
 
+- Validates that the race is active before applying the flag
 - Updates the current race state
 - Stores the active flag
 - Broadcasts the update to all clients
@@ -52,6 +53,7 @@ When a flag is selected:
 
 ## What must happen
 
+- Flag changes are only allowed during an active race
 - All screens update immediately
 - Green → race continues
 - Yellow → caution mode
@@ -65,3 +67,11 @@ When a flag is selected:
 - All participants see the same race state
 - Safety officer controls race flow centrally
 - System stays synchronized across all screens
+
+## Event Flow
+
+1. Safety officer selects a flag  
+2. Client sends `race:flag` event to server  
+3. Server validates that the race is active and updates race state 
+4. Server broadcasts `flag:updated` to all clients  
+5. All screens update the displayed flag  
