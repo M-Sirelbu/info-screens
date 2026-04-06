@@ -29,5 +29,5 @@ This interface requires an access key before the real-time connection is establi
 - **`session:create`** receptionist adds a new race session. No payload required beyond a session identifier
 - **`session:remove`** receptionist deletes an upcoming session. Payload: `{ sessionId }`
 - **`driver:add`** adds a driver to a session. Payload: `{ sessionId, driverName }`. Server assigns the car number automatically
-- **`driver:edit`** updates a driver's name. Payload: `{ sessionId, driverId, newName }`
-- **`driver:remove`** removes a driver from a session. Payload: `{ sessionId, driverId }`
+- **`driver:edit`** updates a driver's name. Payload: `{ sessionId, driverName, newName }`
+- **`driver:remove`** removes a driver from a session. Payload: `{ sessionId, driverName }`
