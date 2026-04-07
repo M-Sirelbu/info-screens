@@ -147,6 +147,7 @@ io.on("connection", (socket) => {
     // callback can be omitted in case of no acknowledgement
     socket.on("eventType", (args, callback) => {
         // Code for processing event, for example, updating variables, emitting new events
+        // For authentication purposes, socket.rooms can be used to determine if the client has been added into a room with authentication during connection initiation
         // For an acknowledgement, use the callback function
         callback({"status": "Success"});
     });
@@ -282,6 +283,7 @@ socket.emit("eventType", {"status": "active"},
 - Contents:
   - `"status"` - status, string, must be: `"notStarted"`, `"active"`, or `"finished"`.
 - No acknowledgement is required.
+- Note. The buttons must be disabled during status `"notStarted"`, but not during `"finished"`, for allowing racers to finish last lap
 - Also sent to Race Control and Leader Board.
 
 #### `"lap"`
@@ -289,7 +291,7 @@ socket.emit("eventType", {"status": "active"},
 - Contents:
   - `"carNumber"` - the car's number that made a lap, number from 1 to 8
 - No acknowledgement is required.
-- This triggers `"lapTime"` for Leader Board.
+- This triggers `"lapTimes"` for Leader Board.
 
 
 ### Leader Board
