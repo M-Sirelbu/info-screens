@@ -257,13 +257,13 @@ socket.emit("eventType", {"status": "active"},
 - Acknowledgement is required. Contents:
   - `"status"` - success or an error, string. Must be `"Success"`, `"Race not Active"`, `"Flag Not Changed"`, or `"Invalid flag"`
 - The server must update the Race Control, Race Flag and Leaderboard screens accordingly, by sending a `"flagChanged"` event to their rooms.
-- In case the flag is the `"finish"` flag, the server must also commence the logic for finishing the race.
+- In case the flag is the `"finish"` flag, the server must also commence the logic for finishing the race, e.g. sending `"sessionStatus"` `status = "finished"`
 
 #### `"sessionEnd"`
 
 - Sent from client to server when a race session is ended.
 - No Contents
-- No acknowledgement is required, as `"sessionStatus"` will be triggered.
+- No acknowledgement is required, as `"sessionStatus"` `status = "finished"` will be triggered.
 
 #### `"raceStartCountdown"`
 - Sent from client to server when a race session is started.
