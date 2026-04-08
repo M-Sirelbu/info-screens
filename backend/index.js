@@ -18,8 +18,8 @@ if (!("receptionist_key" in env) || !("observer_key" in env) || !("safety_key" i
 }
 const privateRoomKeys = {
     "front-desk": env.receptionist_key,
-    "race-control": env.observer_key,
-    "lap-line-tracker": env.safety_key
+    "race-control": env.safety_key,
+    "lap-line-tracker": env.observer_key
 }
 
 let raceDuration;
@@ -31,6 +31,7 @@ if (!("NODE_ENV" in env)) {
     } else if (env.NODE_ENV === "development") {
         raceDuration = 60; // 1 minute for development
     } else {
+        raceDuration = 60;
         console.warn(`Unknown NODE_ENV value: ${env.NODE_ENV}. Defaulting to development mode with a race duration of 60 seconds.`);
     }
 }
