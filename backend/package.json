@@ -7,10 +7,11 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "start": "export NODE_ENV=production; node index.js",
+    "dev": "export NODE_ENV=development; node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "socket.io": "^4.8.3"
-  },
-  "devDependencies": {}
+  }
 }
