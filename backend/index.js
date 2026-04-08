@@ -1,5 +1,7 @@
 const { Server } = require('socket.io');
 const { env } = require('node:process');
+const Repository = require('./repository');
+const onConnection = require('./on_connection');
 
 const io = new Server(3000, {
     cors: {
@@ -20,7 +22,7 @@ const privateRoomKeys = {
     "lap-line-tracker": env.safety_key
 }
 
-let raceDuration; // Default
+let raceDuration;
 if (!("NODE_ENV" in env)) {
     console.warn("NODE_ENV not set. Defaulting to development mode with a race duration of 60 seconds.");
 } else {
@@ -33,6 +35,8 @@ if (!("NODE_ENV" in env)) {
     }
 }
 
+const repository = new Repository(raceDuration);
+
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
@@ -42,6 +46,7 @@ io.on('connection', (socket) => {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
                 callback({status: "Success"});
+                onConnection(socket, repository, args.room);
             } else {
                 callback({status: "Invalid Access Key"});
             }
@@ -49,4 +54,5 @@ io.on('connection', (socket) => {
             callback({status: "Invalid Room"});
         }
     });
+    // Event listeners as modules can be added here
 });
