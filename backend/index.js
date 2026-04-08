@@ -22,7 +22,7 @@ const privateRoomKeys = {
     "lap-line-tracker": env.observer_key
 }
 
-let raceDuration;
+let raceDuration = 60;
 if (!("NODE_ENV" in env)) {
     console.warn("NODE_ENV not set. Defaulting to development mode with a race duration of 60 seconds.");
 } else {
