@@ -49,6 +49,7 @@ io.on('connection', (socket) => {
                 callback({status: "Success"});
                 onConnection(socket, repository, args.room);
             } else {
+                // does not impose timeout on entering room, only feedback
                 setTimeout(() => {
                     callback({ status: "Invalid Access Key" });
                 }, 500);
