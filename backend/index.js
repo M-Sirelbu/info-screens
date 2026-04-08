@@ -49,7 +49,9 @@ io.on('connection', (socket) => {
                 callback({status: "Success"});
                 onConnection(socket, repository, args.room);
             } else {
-                callback({status: "Invalid Access Key"});
+                setTimeout(() => {
+                    callback({ status: "Invalid Access Key" });
+                }, 500);
             }
         } else {
             callback({status: "Invalid Room"});
