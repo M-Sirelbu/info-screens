@@ -1,1 +1,179 @@
-<p>front-desk works!</p>
+<div class="auth-screen" *ngIf="!isAuthenticated">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>Front Desk</h1>
+      <p class="auth-subtitle">Reception Interface</p>
+    </div>
+
+    <div class="auth-form">
+      <label class="field-label" for="accessKey">Access Code</label>
+      <input
+        id="accessKey"
+        class="auth-input"
+        type="password"
+        placeholder="Enter code..."
+        [(ngModel)]="accessKey"
+        (keydown.enter)="login()"
+        [disabled]="isConnecting"
+        autocomplete="off"
+      />
+
+      <p class="auth-error" *ngIf="authError"> {{ authError }}</p>
+
+      <button
+        class="btn btn-primary btn-full"
+        (click)="login()"
+        [disabled]="isConnecting || !accessKey.trim()"
+      >
+        <span *ngIf="!isConnecting">Log in</span>
+        <span *ngIf="isConnecting" class="spinner">Connecting...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="dashboard" *ngIf="isAuthenticated">
+
+  <!-- Päis -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <div>
+        <h1 class="header-title">Front Desk</h1>
+        <p class="header-sub">Reception Interface</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="session-count">{{ sessions.length }} races</span>
+      <button class="btn btn-primary" (click)="createSession()">
+        + Add race
+      </button>
+    </div>
+  </header>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="sessions.length === 0">
+    <p>No races have been added yet.</p>
+    <button class="btn btn-primary" (click)="createSession()">Add first race</button>
+  </div>
+
+  <div class="sessions-list" *ngIf="sessions.length > 0">
+
+    <div
+      class="session-card"
+      *ngFor="let session of sessions"
+      [class.locked]="isLocked(session)"
+    >
+      <div class="session-header">
+        <div class="session-title">
+          <span class="session-number">Race #{{ session.sessionId }}</span>
+          <span class="lock-badge" *ngIf="isLocked(session)">Locked</span>
+          <span class="driver-count">{{ session.driverNames.length }}/8 drivers</span>
+        </div>
+        <div class="session-actions">
+          <button
+            class="btn btn-danger btn-sm"
+            *ngIf="!isLocked(session)"
+            (click)="removeSession(session.sessionId)"
+            title="Delete race"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="drivers-section">
+        <table class="drivers-table" *ngIf="session.driverNames.length > 0">
+          <thead>
+            <tr>
+              <th>Car #</th>
+              <th>Driver name</th>
+              <th *ngIf="!isLocked(session)">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let driver of getDrivers(session)">
+              <td class="car-number">
+                <span class="car-badge">{{ driver.carNumber }}</span>
+              </td>
+
+              <td *ngIf="isEditing(session.sessionId, driver.driverName)">
+                <input
+                  class="inline-input"
+                  type="text"
+                  [(ngModel)]="editingNewName"
+                  (keydown)="onKeyDown($event, 'confirmEdit')"
+                  autofocus
+                />
+              </td>
+
+              <td *ngIf="!isEditing(session.sessionId, driver.driverName)">
+                {{ driver.driverName }}
+              </td>
+
+              <td *ngIf="!isLocked(session)" class="driver-actions">
+                <ng-container *ngIf="isEditing(session.sessionId, driver.driverName)">
+                  <button class="btn btn-success btn-xs" (click)="confirmEdit()" title="Confirm">✓</button>
+                  <button class="btn btn-ghost btn-xs" (click)="cancelEdit()" title="Cancel">✕</button>
+                </ng-container>
+
+                <ng-container *ngIf="!isEditing(session.sessionId, driver.driverName)">
+                  <button
+                    class="btn btn-ghost btn-xs"
+                    (click)="startEdit(session.sessionId, driver.driverName)"
+                    title="Edit name"
+                  >✏</button>
+                  <button
+                    class="btn btn-danger btn-xs"
+                    (click)="removeDriver(session.sessionId, driver.driverName)"
+                    title="Remove driver"
+                  >Delete</button>
+                </ng-container>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="no-drivers" *ngIf="session.driverNames.length === 0 && !isLocked(session)">
+          No drivers added.
+        </p>
+
+        <div class="add-driver-form" *ngIf="canAddDriver(session)">
+          <input
+            class="driver-input"
+            type="text"
+            placeholder="Driver name..."
+            [(ngModel)]="newDriverName"
+            (keydown)="onKeyDown($event, 'addDriver', session.sessionId)"
+            *ngIf="expandedSessionId === session.sessionId"
+          />
+          <div class="add-driver-buttons">
+            <button
+              class="btn btn-secondary btn-sm"
+              *ngIf="expandedSessionId !== session.sessionId"
+              (click)="toggleExpand(session.sessionId)"
+            >
+              + Add driver
+            </button>
+            <ng-container *ngIf="expandedSessionId === session.sessionId">
+              <button
+                class="btn btn-success btn-sm"
+                (click)="addDriver(session.sessionId)"
+                [disabled]="!newDriverName.trim()"
+              >
+                ✓ Add
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="toggleExpand(session.sessionId)">
+                Cancel
+              </button>
+            </ng-container>
+          </div>
+        </div>
+
+        <p class="max-notice" *ngIf="session.driverNames.length >= 8 && !isLocked(session)">
+          Maximum number of drivers (8) reached.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
