@@ -12,6 +12,23 @@ const io = new Server(3000, {
 const publicRooms = ["leader-board", "next-race", "race-countdown", "race-flags"];
 const privateRooms = ["front-desk", "race-control", "lap-line-tracker"];
 
+const clientEvents = {
+    SELECT_ROOM: "selectRoom",
+    START_RACE: "startRace",
+    SET_FLAG: "setFlag",
+    FINISH_RACE: "finishRace",
+    END_SESSION: "endSession",
+    GET_NEXT_RACE: "getNextRace",
+    GET_FLAG_SCREEN: "getFlagScreen",
+    GET_RACE_STATE: "getRaceState"
+};
+
+const serverEvents = {
+    RACE_STATE_UPDATE: "raceStateUpdate",
+    NEXT_RACE_UPDATE: "nextRaceUpdate",
+    FLAG_SCREEN_UPDATE: "flagScreenUpdate"
+};
+
 if (!("receptionist_key" in env) || !("observer_key" in env) || !("safety_key" in env)) {
     console.error("Missing environment variables for private room keys. Please set receptionist_key, observer_key, and safety_key.");
     process.exit(1);
@@ -41,33 +58,33 @@ const repository = new Repository(raceDuration);
 function broadcastRaceState() {
     const raceState = repository.getRaceState();
 
-    io.to("race-control").emit("raceStateUpdate", raceState);
-    io.to("leader-board").emit("raceStateUpdate", raceState);
-    io.to("race-countdown").emit("raceStateUpdate", raceState);
-    io.to("race-flags").emit("raceStateUpdate", raceState);
-    io.to("next-race").emit("raceStateUpdate", raceState);
+    io.to("race-control").emit(serverEvents.RACE_STATE_UPDATE, raceState);
+    io.to("leader-board").emit(serverEvents.RACE_STATE_UPDATE, raceState);
+    io.to("race-countdown").emit(serverEvents.RACE_STATE_UPDATE, raceState);
+    io.to("race-flags").emit(serverEvents.RACE_STATE_UPDATE, raceState);
+    io.to("next-race").emit(serverEvents.RACE_STATE_UPDATE, raceState);
 }
 
 function broadcastNextSession() {
     const result = repository.getNextSession();
 
     if (result.status !== "Success") {
-        io.to("next-race").emit("nextRaceUpdate", {
+        io.to("next-race").emit(serverEvents.NEXT_RACE_UPDATE, {
             status: "Error",
             message: result.message
         });
         return;
     }
 
-    io.to("next-race").emit("nextRaceUpdate", result.session);
+    io.to("next-race").emit(serverEvents.NEXT_RACE_UPDATE, result.session);
 }
 
 function emitFlagState(socket) {
-    socket.emit("flagScreenUpdate", repository.getFlagState());
+    socket.emit(serverEvents.FLAG_SCREEN_UPDATE, repository.getFlagState());
 }
 
 io.on('connection', (socket) => {
-    socket.on("selectRoom", (args, callback) => {
+    socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
@@ -91,7 +108,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("startRace", (callback) => {
+    socket.on(clientEvents.START_RACE, (callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
@@ -111,7 +128,7 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("setFlag", (args, callback) => {
+    socket.on(clientEvents.SET_FLAG, (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
@@ -131,7 +148,7 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("finishRace", (callback) => {
+    socket.on(clientEvents.FINISH_RACE, (callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
@@ -151,7 +168,7 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("endSession", (callback) => {
+    socket.on(clientEvents.END_SESSION, (callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
@@ -172,7 +189,7 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("getNextRace", (callback) => {
+    socket.on(clientEvents.GET_NEXT_RACE, (callback) => {
         const result = repository.getNextSession();
 
         if (result.status !== "Success") {
@@ -182,21 +199,21 @@ io.on('connection', (socket) => {
 
         callback({
             status: "Success",
-            session: result.session
+            nextSession: result.session
         });
     });
 
-    socket.on("getFlagScreen", (callback) => {
+    socket.on(clientEvents.GET_FLAG_SCREEN, (callback) => {
         callback({
             status: "Success",
-            screen: repository.getFlagState()
+            flagState: repository.getFlagState()
         });
     });
 
-    socket.on("getRaceState", (callback) => {
+    socket.on(clientEvents.GET_RACE_STATE, (callback) => {
         callback({
             status: "Success",
-            race: repository.getRaceState()
+            raceState: repository.getRaceState()
         });
     });
 

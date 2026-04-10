@@ -182,5 +182,3 @@ class Repository {
  }
 
 module.exports = Repository;
-
-    // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
