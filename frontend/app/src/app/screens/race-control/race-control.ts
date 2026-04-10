@@ -20,21 +20,31 @@ export class RaceControl implements OnInit, OnDestroy {
   currentFlag: RaceFlag | '' = '';
   message = '';
 
+   // Temporary until proper UI for entering the key is added
+  accessKey = 'test-key';
+
   ngOnInit(): void {
     this.socket = io();
 
     this.socket.on('connect', () => {
-      this.connected = true;
-      this.message = 'Ühendus loodud';
-
-      this.socket.emit('selectRoom', { room: 'race-control' }, (response: { status: string }) => {
-        this.message = response?.status ?? 'Room valitud';
-      });
-    });
-
+      this.socket.emit('selectRoom', { room: 'race-control', key: this.accessKey },
+      (response: { status: string }) => {
+        if (response.status === 'Success') {
+          this.connected = true;
+          this.message = 'Connected';
+        } else if (response.status === 'Invalid Access Key') {
+          this.connected = false;
+          this.message = 'Invalid Access Key';
+        } else {
+          this.connected = false;
+          this.message = response?.status ?? 'Connection failed';
+      }
+     }
+    );
+  });
     this.socket.on('disconnect', () => {
       this.connected = false;
-      this.message = 'Ühendus katkes';
+      this.message = 'Connection lost';
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
@@ -47,24 +57,32 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   startRaceCountdown(): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('raceStartCountdown', {}, (response: { status: string }) => {
-      this.message = response?.status ?? 'Käsk saadetud';
+      this.message = response?.status ?? 'Command sent';
     });
   }
 
   changeFlag(flag: RaceFlag): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('raceFlag', { flag }, (response: { status: string }) => {
-      this.message = response?.status ?? 'Lipp muudetud';
+      this.message = response?.status ?? 'Flag updated';
     });
   }
 
-  finishRace(): void {
-    this.changeFlag('finish');
-  }
-
   endSession(): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('sessionEnd', {});
-    this.message = 'Sessiooni lõpetamise käsk saadetud';
+    this.message = 'Session end command sent';
   }
 
   canStartRace(): boolean {
@@ -75,17 +93,13 @@ export class RaceControl implements OnInit, OnDestroy {
     return this.connected && this.sessionStatus === 'active';
   }
 
-  canFinishRace(): boolean {
-    return this.connected && this.sessionStatus === 'active';
-  }
-
   canEndSession(): boolean {
-    return this.connected && this.sessionStatus !== 'notStarted';
+    return this.connected && this.sessionStatus === 'finished';
   }
 
-  ngOnDestroy(): void {
-    if (this.socket) {
-      this.socket.disconnect();
+ngOnDestroy(): void {
+  if (this.socket) {
+    this.socket.disconnect();
     }
   }
 }
