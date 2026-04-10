@@ -263,7 +263,8 @@ socket.emit("eventType", {"status": "active"},
 
 - Sent from client to server when a race session is ended.
 - No Contents
-- No acknowledgement is required, as `"sessionStatus"` `status = "finished"` will be triggered.
+- No acknowledgement is required, as `"sessionStatus"` `status = "notStarted"` will be triggered.
+- This shall trigger loading a new session, and a `"flagChanged"` to `"red"`.
 
 #### `"raceStartCountdown"`
 - Sent from client to server when a race session is started.
