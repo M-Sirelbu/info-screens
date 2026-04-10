@@ -104,7 +104,7 @@ class Repository {
             };
         }
 
-        this.currentRace.status = "sessionEnded";
+        this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
 
         return {
@@ -128,8 +128,7 @@ class Repository {
             session: {
                 sessionId: nextSession.sessionId,
                 driverNames: nextSession.driverNames,
-                carNumbers: nextSession.carNumbers,
-                message: "Proceed to paddock"
+                carNumbers: nextSession.carNumbers
             }
         };
     }

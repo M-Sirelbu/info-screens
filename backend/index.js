@@ -50,14 +50,10 @@ function broadcastNextSession() {
     const result = repository.getNextSession();
 
     if (result.status !== "Success") {
-        io.to("next-race").emit("nextRaceUpdate", {
-            status: "Error",
-            message: result.message
-        });
         return;
     }
 
-    io.to("next-race").emit("nextRaceUpdate", result.session);
+    io.to("next-race").emit("nextSessionUpdate", result.session);
 }
 
 io.on('connection', (socket) => {
@@ -141,39 +137,15 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("endSession", (callback) => {
+    socket.on("sessionEnd", () => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
             return;
         }
 
-        const result = repository.endSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
+        repository.endSession();
 
         broadcastRaceState();
         broadcastNextSession();
-        callback({ status: "Success" });
-    });
-
-    socket.on("getNextRace", (callback) => {
-        const result = repository.getNextSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        callback({
-            status: "Success",
-            session: result.session
-        });
     });
 
     // Event listeners as modules can be added here
