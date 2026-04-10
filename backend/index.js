@@ -38,6 +38,14 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
+function broadcastRaceState() {
+    io.to("race-control").emit("raceStateUpdate", repository.currentRace);
+    io.to("leader-board").emit("raceStateUpdate", repository.currentRace);
+    io.to("race-countdown").emit("raceStateUpdate", repository.currentRace);
+    io.to("race-flags").emit("raceStateUpdate", repository.currentRace);
+    io.to("next-race").emit("raceStateUpdate", repository.currentRace);
+}
+
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
@@ -58,5 +66,28 @@ io.on('connection', (socket) => {
             callback({status: "Invalid Room"});
         }
     });
+
+    socket.on("startRace", (callback) => {
+        if (!socket.rooms.has("race-control")) {
+            callback({
+                status: "Error",
+                message: "Unauthorized"
+            });
+            return;
+        }
+
+        const result = repository.startRace();
+
+        if (result.status !== "Success") {
+            callback(result);
+            return;
+        }
+
+        broadcastRaceState();
+        callback({ status: "Success" });
+    });
+
     // Event listeners as modules can be added here
 });
+
+console.log("Socket.IO backend running on port 3000");
