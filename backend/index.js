@@ -107,6 +107,26 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
+    socket.on("finishRace", (callback) => {
+        if (!socket.rooms.has("race-control")) {
+            callback({
+                status: "Error",
+                message: "Unauthorized"
+            });
+            return;
+        }
+
+        const result = repository.finishRace();
+
+        if (result.status !== "Success") {
+            callback(result);
+            return;
+        }
+
+        broadcastRaceState();
+        callback({ status: "Success" });
+    });
+
     // Event listeners as modules can be added here
 });
 

@@ -65,6 +65,30 @@ class Repository {
         };
     }
 
+    finishRace() {
+        if (this.currentRace.sessionId === null) {
+            return {
+                status: "Error",
+                message: "No session loaded"
+            };
+        }
+
+        if (this.currentRace.status !== "running") {
+            return {
+                status: "Error",
+                message: "Race not running"
+            };
+        }
+
+        this.currentRace.status = "finished";
+        this.currentRace.flag = "chequered";
+
+        return {
+            status: "Success",
+            race: this.currentRace
+        };
+    }
+
     setFlag(flag) {
         const allowedFlags = ["green", "yellow", "red", "chequered"];
 
