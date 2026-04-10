@@ -25,9 +25,9 @@ interface Session {
 export class FrontDeskComponent implements OnInit, OnDestroy {
 
   private socket!: Socket;
-  private readonly backendSocketUrl = `${window.location.protocol}//${window.location.hostname}:3000`;
   private pendingLogin = false;
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private readonly lockedSessionIds = new Set<number>();
   private cdr = inject(ChangeDetectorRef);
 
   sessions: Session[] = [];
@@ -53,7 +53,7 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
 
 
   private initSocket(): void {
-    this.socket = io(this.backendSocketUrl, {
+    this.socket = io({
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -78,11 +78,15 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
     });
 
     this.socket.on('sessionsUpdated', (data: { sessions: Session[] }) => {
-      this.sessions = data.sessions;
+      this.sessions = data.sessions.map(session => ({
+        ...session,
+        locked: session.locked === true || this.lockedSessionIds.has(session.sessionId)
+      }));
       this.cdr.detectChanges();
     });
 
     this.socket.on('sessionStarted', (data: { sessionId: number }) => {
+      this.lockedSessionIds.add(data.sessionId);
       const session = this.sessions.find(s => s.sessionId === data.sessionId);
       if (session) {
         session.locked = true;
@@ -143,7 +147,7 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
       this.pendingLogin = false;
       this.isAuthenticated = false;
       this.isConnecting = false;
-      this.authError = 'Connection timed out. Please verify backend is running on port 3000.';
+      this.authError = 'Connection timed out. Please try again.';
       this.socket.disconnect();
       this.cdr.detectChanges();
     }, 8000);
