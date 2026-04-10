@@ -55,7 +55,12 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        if (this.currentRace.status === "active") {
+            return {
+                status: "Error",
+                message: "Race already active"
+            };
+        }
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 

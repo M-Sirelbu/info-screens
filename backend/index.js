@@ -44,6 +44,8 @@ function broadcastRaceState() {
     io.to("race-countdown").emit("raceStateUpdate", repository.currentRace);
     io.to("race-flags").emit("raceStateUpdate", repository.currentRace);
     io.to("next-race").emit("raceStateUpdate", repository.currentRace);
+    io.to("lap-line-tracker").emit("raceStateUpdate", repository.currentRace);
+    io.to("front-desk").emit("raceStateUpdate", repository.currentRace);    
 }
 
 io.on('connection', (socket) => {
@@ -51,6 +53,7 @@ io.on('connection', (socket) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
