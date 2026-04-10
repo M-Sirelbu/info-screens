@@ -66,28 +66,23 @@ class Repository {
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
-            return {
-                status: "Error",
-                message: "Invalid flag"
-            };
+            return "Invalid flag";
         }
 
-        if (this.currentRace.status !== "running") {
-            return {
-                status: "Error",
-                message: "Race not running"
-            };
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
+        }
+
+        if (this.currentRace.flag === flag) {
+            return "Flag Not Changed";
         }
 
         this.currentRace.flag = flag;
 
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
+        return "Success";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
