@@ -19,14 +19,12 @@ const clientEvents = {
     FINISH_RACE: "finishRace",
     END_SESSION: "endSession",
     GET_NEXT_RACE: "getNextRace",
-    GET_FLAG_SCREEN: "getFlagScreen",
     GET_RACE_STATE: "getRaceState"
 };
 
 const serverEvents = {
     RACE_STATE_UPDATE: "raceStateUpdate",
-    NEXT_RACE_UPDATE: "nextRaceUpdate",
-    FLAG_SCREEN_UPDATE: "flagScreenUpdate"
+    NEXT_RACE_UPDATE: "nextRaceUpdate"
 };
 
 if (!("receptionist_key" in env) || !("observer_key" in env) || !("safety_key" in env)) {
@@ -79,19 +77,14 @@ function broadcastNextSession() {
     io.to("next-race").emit(serverEvents.NEXT_RACE_UPDATE, result.session);
 }
 
-function emitFlagState(socket) {
-    socket.emit(serverEvents.FLAG_SCREEN_UPDATE, repository.getFlagState());
-}
-
 io.on('connection', (socket) => {
     socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
 
-            if (args.room === "race-flags") {
-                emitFlagState(socket);
-            }
+            // initial state tuleb läbi raceStateUpdate (FE kuulab seda)
+            socket.emit(serverEvents.RACE_STATE_UPDATE, repository.getRaceState());
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -200,13 +193,6 @@ io.on('connection', (socket) => {
         callback({
             status: "Success",
             nextSession: result.session
-        });
-    });
-
-    socket.on(clientEvents.GET_FLAG_SCREEN, (callback) => {
-        callback({
-            status: "Success",
-            flagState: repository.getFlagState()
         });
     });
 
