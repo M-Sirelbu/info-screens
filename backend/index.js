@@ -70,19 +70,16 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("startRace", (callback) => {
+    socket.on("raceStartCountdown", (callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Invalid Session Status" });
             return;
         }
 
-        const result = repository.startRace();
+        const result = repository.raceStartCountdown();
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 

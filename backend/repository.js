@@ -48,26 +48,16 @@ class Repository {
         return "Session not found";
     }
 
-    startRace() {
+    beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
-            return {
-                status: "Error",
-                message: "No session loaded"
-            };
+            return "Invalid Session Status";
         }
         if (this.currentRace.status === "active") {
-            return {
-                status: "Error",
-                message: "Race already active"
-            };
+            return "Invalid Session Status";
         }
-        this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
+        return "Success";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
