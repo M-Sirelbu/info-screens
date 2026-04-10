@@ -60,21 +60,16 @@ function broadcastNextSession() {
     io.to("next-race").emit("nextRaceUpdate", result.session);
 }
 
-function emitFlagState(socket) {
-    socket.emit("flagScreenUpdate", {
-        status: repository.currentRace.status,
-        flag: repository.currentRace.flag
-    });
-}
-
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
 
-            if (args.room === "race-flags") {
-                emitFlagState(socket);
+            if (args.room === "race-flags" && repository.currentRace.status === "active") {
+                socket.emit("flagChanged", {
+                    flag: repository.currentRace.flag
+                });
             }
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
@@ -184,16 +179,6 @@ io.on('connection', (socket) => {
         callback({
             status: "Success",
             session: result.session
-        });
-    });
-
-    socket.on("getFlagScreen", (callback) => {
-        callback({
-            status: "Success",
-            screen: {
-                status: repository.currentRace.status,
-                flag: repository.currentRace.flag
-            }
         });
     });
 

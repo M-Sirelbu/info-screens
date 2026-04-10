@@ -55,7 +55,7 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
@@ -73,7 +73,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
@@ -81,7 +81,7 @@ class Repository {
         }
 
         this.currentRace.status = "finished";
-        this.currentRace.flag = "chequered";
+        this.currentRace.flag = "finish";
 
         return {
             status: "Success",
@@ -104,7 +104,7 @@ class Repository {
             };
         }
 
-        this.currentRace.status = "sessionEnded";
+        this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
 
         return {
@@ -135,7 +135,7 @@ class Repository {
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
             return {
@@ -144,7 +144,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
