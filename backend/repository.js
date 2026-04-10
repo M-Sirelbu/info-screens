@@ -72,7 +72,7 @@ class Repository {
             return "Invalid flag";
         }
 
-        if (this.currentRace.status !== "active") {
+        if (this.currentRace.status !== "running") {
             return "Race not Active";
         }
 
