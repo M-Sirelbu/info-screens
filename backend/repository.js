@@ -55,7 +55,7 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
@@ -73,7 +73,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
@@ -81,7 +81,7 @@ class Repository {
         }
 
         this.currentRace.status = "finished";
-        this.currentRace.flag = "chequered";
+        this.currentRace.flag = "finish";
 
         return {
             status: "Success",
@@ -91,30 +91,19 @@ class Repository {
 
     endSession() {
         if (this.currentRace.sessionId === null) {
-            return {
-                status: "Error",
-                message: "No session loaded"
-            };
+            return;
         }
 
         if (this.currentRace.status !== "finished") {
-            return {
-                status: "Error",
-                message: "Race not finished"
-            };
+            return;
         }
 
-        this.currentRace.status = "sessionEnded";
+        this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
-
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
             return {
@@ -123,7 +112,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
