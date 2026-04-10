@@ -46,6 +46,20 @@ function broadcastRaceState() {
     io.to("next-race").emit("raceStateUpdate", repository.currentRace);
 }
 
+function broadcastNextSession() {
+    const result = repository.getNextSession();
+
+    if (result.status !== "Success") {
+        io.to("next-race").emit("nextRaceUpdate", {
+            status: "Error",
+            message: result.message
+        });
+        return;
+    }
+
+    io.to("next-race").emit("nextRaceUpdate", result.session);
+}
+
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
@@ -144,7 +158,22 @@ io.on('connection', (socket) => {
         }
 
         broadcastRaceState();
+        broadcastNextSession();
         callback({ status: "Success" });
+    });
+
+    socket.on("getNextRace", (callback) => {
+        const result = repository.getNextSession();
+
+        if (result.status !== "Success") {
+            callback(result);
+            return;
+        }
+
+        callback({
+            status: "Success",
+            session: result.session
+        });
     });
 
     // Event listeners as modules can be added here
