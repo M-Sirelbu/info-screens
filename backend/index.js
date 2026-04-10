@@ -39,11 +39,13 @@ if (!("NODE_ENV" in env)) {
 const repository = new Repository(raceDuration);
 
 function broadcastRaceState() {
-    io.to("race-control").emit("raceStateUpdate", repository.currentRace);
-    io.to("leader-board").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-countdown").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-flags").emit("raceStateUpdate", repository.currentRace);
-    io.to("next-race").emit("raceStateUpdate", repository.currentRace);
+    const raceState = repository.getRaceState();
+
+    io.to("race-control").emit("raceStateUpdate", raceState);
+    io.to("leader-board").emit("raceStateUpdate", raceState);
+    io.to("race-countdown").emit("raceStateUpdate", raceState);
+    io.to("race-flags").emit("raceStateUpdate", raceState);
+    io.to("next-race").emit("raceStateUpdate", raceState);
 }
 
 function broadcastNextSession() {
@@ -61,10 +63,7 @@ function broadcastNextSession() {
 }
 
 function emitFlagState(socket) {
-    socket.emit("flagScreenUpdate", {
-        status: repository.currentRace.status,
-        flag: repository.currentRace.flag
-    });
+    socket.emit("flagScreenUpdate", repository.getFlagState());
 }
 
 io.on('connection', (socket) => {
@@ -190,10 +189,14 @@ io.on('connection', (socket) => {
     socket.on("getFlagScreen", (callback) => {
         callback({
             status: "Success",
-            screen: {
-                status: repository.currentRace.status,
-                flag: repository.currentRace.flag
-            }
+            screen: repository.getFlagState()
+        });
+    });
+
+    socket.on("getRaceState", (callback) => {
+        callback({
+            status: "Success",
+            race: repository.getRaceState()
         });
     });
 

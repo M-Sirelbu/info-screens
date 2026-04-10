@@ -113,6 +113,25 @@ class Repository {
         };
     }
 
+    getRaceState() {
+        return {
+            status: this.currentRace.status,
+            sessionId: this.currentRace.sessionId,
+            carNumbers: this.currentRace.carNumbers,
+            completedLaps: this.currentRace.completedLaps,
+            bestLapTime: this.currentRace.bestLapTime,
+            flag: this.currentRace.flag,
+            remainingSeconds: this.currentRace.remainingSeconds
+        };
+    }
+
+    getFlagState() {
+        return {
+            status: this.currentRace.status,
+            flag: this.currentRace.flag
+        };
+    }
+
     getNextSession() {
         if (this.sessions.length === 0) {
             return {
