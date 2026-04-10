@@ -55,7 +55,7 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
@@ -73,7 +73,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
@@ -81,7 +81,7 @@ class Repository {
         }
 
         this.currentRace.status = "finished";
-        this.currentRace.flag = "chequered";
+        this.currentRace.flag = "finish";
 
         return {
             status: "Success",
@@ -104,7 +104,7 @@ class Repository {
             };
         }
 
-        this.currentRace.status = "sessionEnded";
+        this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
 
         return {
@@ -113,21 +113,14 @@ class Repository {
         };
     }
 
-    getRaceState() {
+    getSessionStatus() {
         return {
-            status: this.currentRace.status,
-            sessionId: this.currentRace.sessionId,
-            carNumbers: this.currentRace.carNumbers,
-            completedLaps: this.currentRace.completedLaps,
-            bestLapTime: this.currentRace.bestLapTime,
-            flag: this.currentRace.flag,
-            remainingSeconds: this.currentRace.remainingSeconds
+            status: this.currentRace.status
         };
     }
 
-    getFlagState() {
+    getFlag() {
         return {
-            status: this.currentRace.status,
             flag: this.currentRace.flag
         };
     }
@@ -147,14 +140,13 @@ class Repository {
             session: {
                 sessionId: nextSession.sessionId,
                 driverNames: nextSession.driverNames,
-                carNumbers: nextSession.carNumbers,
-                message: "Proceed to paddock"
+                carNumbers: nextSession.carNumbers
             }
         };
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
             return {
@@ -163,7 +155,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"

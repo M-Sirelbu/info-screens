@@ -38,32 +38,30 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
-function broadcastRaceState() {
-    const raceState = repository.getRaceState();
+function broadcastSessionStatus() {
+    const sessionStatus = repository.getSessionStatus();
 
-    io.to("race-control").emit("raceStateUpdate", raceState);
-    io.to("leader-board").emit("raceStateUpdate", raceState);
-    io.to("race-countdown").emit("raceStateUpdate", raceState);
-    io.to("race-flags").emit("raceStateUpdate", raceState);
-    io.to("next-race").emit("raceStateUpdate", raceState);
+    io.to("race-control").emit("sessionStatus", sessionStatus);
+    io.to("lap-line-tracker").emit("sessionStatus", sessionStatus);
+    io.to("leader-board").emit("sessionStatus", sessionStatus);
+}
+
+function broadcastFlagChanged() {
+    const flag = repository.getFlag();
+
+    io.to("race-control").emit("flagChanged", flag);
+    io.to("leader-board").emit("flagChanged", flag);
+    io.to("race-flags").emit("flagChanged", flag);
 }
 
 function broadcastNextSession() {
     const result = repository.getNextSession();
 
     if (result.status !== "Success") {
-        io.to("next-race").emit("nextRaceUpdate", {
-            status: "Error",
-            message: result.message
-        });
         return;
     }
 
-    io.to("next-race").emit("nextRaceUpdate", result.session);
-}
-
-function emitFlagState(socket) {
-    socket.emit("flagScreenUpdate", repository.getFlagState());
+    io.to("next-race").emit("nextSessionUpdate", result.session);
 }
 
 io.on('connection', (socket) => {
@@ -72,8 +70,8 @@ io.on('connection', (socket) => {
             socket.join(args.room);
             callback({status: "Success"});
 
-            if (args.room === "race-flags") {
-                emitFlagState(socket);
+            if (args.room === "race-flags" && repository.currentRace.status === "active") {
+                socket.emit("flagChanged", repository.getFlag());
             }
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
@@ -107,7 +105,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
         callback({ status: "Success" });
     });
 
@@ -127,7 +126,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        broadcastFlagChanged();
         callback({ status: "Success" });
     });
 
@@ -147,7 +146,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
         callback({ status: "Success" });
     });
 
@@ -167,37 +167,10 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
         broadcastNextSession();
         callback({ status: "Success" });
-    });
-
-    socket.on("getNextRace", (callback) => {
-        const result = repository.getNextSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        callback({
-            status: "Success",
-            session: result.session
-        });
-    });
-
-    socket.on("getFlagScreen", (callback) => {
-        callback({
-            status: "Success",
-            screen: repository.getFlagState()
-        });
-    });
-
-    socket.on("getRaceState", (callback) => {
-        callback({
-            status: "Success",
-            race: repository.getRaceState()
-        });
     });
 
     // Event listeners as modules can be added here
