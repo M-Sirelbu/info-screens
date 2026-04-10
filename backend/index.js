@@ -58,6 +58,10 @@ function broadcastNextSession() {
     const result = repository.getNextSession();
 
     if (result.status !== "Success") {
+        io.to("next-race").emit("nextSessionUpdate", {
+            status: "Error",
+            message: result.message
+        });
         return;
     }
 
