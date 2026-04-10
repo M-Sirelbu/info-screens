@@ -65,12 +65,6 @@ io.on('connection', (socket) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
-
-            if (args.room === "race-flags" && repository.currentRace.status === "active") {
-                socket.emit("flagChanged", {
-                    flag: repository.currentRace.flag
-                });
-            }
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
