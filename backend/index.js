@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const result = repository.raceStartCountdown();
+        const result = repository.beginStartCountdown();
 
         if (result !== "Success") {
             callback({ status: result });
