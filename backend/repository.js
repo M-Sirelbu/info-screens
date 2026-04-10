@@ -55,7 +55,7 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
@@ -66,28 +66,23 @@ class Repository {
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
-            return {
-                status: "Error",
-                message: "Invalid flag"
-            };
+            return "Invalid flag";
         }
 
-        if (this.currentRace.status !== "running") {
-            return {
-                status: "Error",
-                message: "Race not running"
-            };
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
         }
 
         this.currentRace.flag = flag;
 
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
+        if (flag === "finish") {
+            this.currentRace.status = "finished";
+        }
+
+        return "Success";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented

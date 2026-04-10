@@ -87,19 +87,16 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("setFlag", (args, callback) => {
+    socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Race not Active" });
             return;
         }
 
         const result = repository.setFlag(args.flag);
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 
