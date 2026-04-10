@@ -65,6 +65,31 @@ class Repository {
         };
     }
 
+    setFlag(flag) {
+        const allowedFlags = ["green", "yellow", "red", "chequered"];
+
+        if (!allowedFlags.includes(flag)) {
+            return {
+                status: "Error",
+                message: "Invalid flag"
+            };
+        }
+
+        if (this.currentRace.status !== "running") {
+            return {
+                status: "Error",
+                message: "Race not running"
+            };
+        }
+
+        this.currentRace.flag = flag;
+
+        return {
+            status: "Success",
+            race: this.currentRace
+        };
+    }
+
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
  }
 
