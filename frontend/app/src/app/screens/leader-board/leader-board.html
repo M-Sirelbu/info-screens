@@ -1,6 +1,8 @@
 <div>
   <button (click)="enterFullscreen()">Full Screen</button>
 
+  <p *ngIf="connectionError">{{ connectionError }}</p>
+
   <!-- Timer and flag status -->
   <div>
     <span>Time Remaining: {{ formatTime(remainingSeconds) }}</span>

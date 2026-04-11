@@ -26,6 +26,7 @@ export class LeaderBoard implements OnInit, OnDestroy {
   currentFlag: RaceFlag | null = null;
   remainingSeconds = 0;
   entries: LeaderboardEntry[] = [];
+  connectionError: string | null = null;
 
   get sortedEntries(): LeaderboardEntry[] {
     return [...this.entries].sort((a, b) => {
@@ -41,7 +42,11 @@ export class LeaderBoard implements OnInit, OnDestroy {
 
     this.socket.on('connect', () => {
       this.socket.emit('selectRoom', { room: 'leader-board' }, (response: { status: string }) => {
-        console.log('Leader board room:', response?.status);
+        if (response?.status !== 'Success') {
+          this.connectionError = 'Connection failed: ' + (response?.status ?? 'Unknown error');
+        } else {
+          this.connectionError = null;
+        }
       });
     });
 
@@ -98,6 +103,8 @@ export class LeaderBoard implements OnInit, OnDestroy {
   }
 
   enterFullscreen(): void {
-    document.documentElement.requestFullscreen();
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.warn('Fullscreen failed:', err);
+    });
   }
 }
