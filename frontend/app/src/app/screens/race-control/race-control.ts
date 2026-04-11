@@ -19,8 +19,9 @@ export class RaceControl implements OnInit, OnDestroy {
   sessionStatus: SessionStatus = 'notStarted';
   currentFlag: RaceFlag | '' = '';
   message = '';
-
-   // Temporary until proper UI for entering the key is added
+  
+  // Temporary until proper UI for entering the key is added
+   // Planned approach: provide the key via a UI prompt or shared config once the unified HTML/SCSS screens are implemented.
   accessKey = 'test-key';
 
   ngOnInit(): void {
@@ -79,7 +80,7 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   canEndSession(): boolean {
-    return this.connected && this.sessionStatus === 'finished';
+    return this.connected && this.sessionStatus !== 'notStarted';
   }
 
 ngOnDestroy(): void {
