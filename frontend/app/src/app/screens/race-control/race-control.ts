@@ -20,10 +20,10 @@ export class RaceControl implements OnInit, OnDestroy {
   currentFlag: RaceFlag | '' = '';
   message = '';
 
-   // Temporary until proper UI for entering the key is added
-  accessKey = 'test-key';
+  accessKey = '';
 
   ngOnInit(): void {
+    this.accessKey = prompt('Enter access key') ?? '';
     this.socket = io();
 
     this.socket.on('connect', () => {
@@ -94,7 +94,7 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   canEndSession(): boolean {
-    return this.connected && this.sessionStatus === 'finished';
+    return this.connected && this.sessionStatus !== 'notStarted';
   }
 
 ngOnDestroy(): void {
