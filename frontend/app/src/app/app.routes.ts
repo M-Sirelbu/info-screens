@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { FrontDesk } from './screens/front-desk/front-desk';
-import { RaceControl } from './screens/race-control/race-control';
+import { RaceControl  } from './screens/race-control/race-control';
 import { LapLineTracker } from './screens/lap-line-tracker/lap-line-tracker';
 import { LeaderBoard } from './screens/leader-board/leader-board';
 import { NextRace } from './screens/next-race/next-race';
