@@ -36,7 +36,7 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   authError: string = '';
   isConnecting: boolean = false;
   expandedSessionId: number | null = null;
-  newDriverName: string = '';
+  newDriverNames: Record<number, string> = {};
   editingDriver: { sessionId: number; driverName: string } | null = null;
   editingNewName: string = '';
 
@@ -70,14 +70,22 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
 
     this.socket.on('connect_error', () => {
       this.clearLoginTimeout();
-      this.isConnecting = false;
-      this.pendingLogin = false;
-      this.isAuthenticated = false;
-      this.authError = 'Cannot connect to server. Please check backend and try again.';
+      if (this.isAuthenticated) {
+        this.authError = '';
+      } else {
+        this.isConnecting = false;
+        this.pendingLogin = false;
+        this.isAuthenticated = false;
+        this.authError = 'Cannot connect to server. Please check backend and try again.';
+      }
       this.cdr.detectChanges();
     });
 
     this.socket.on('sessionsUpdated', (data: { sessions: Session[] }) => {
+      const activeSessionIds = new Set(data.sessions.map((session) => session.sessionId));
+      this.pruneLockedSessionIds(activeSessionIds);
+      this.pruneNewDriverNames(activeSessionIds);
+      this.clearStaleUiState(activeSessionIds);
       this.sessions = data.sessions.map(session => ({
         ...session,
         locked: session.locked === true || this.lockedSessionIds.has(session.sessionId)
@@ -119,8 +127,10 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
         this.clearLoginTimeout();
         if (err) {
           this.isConnecting = false;
-          this.isAuthenticated = false;
-          this.authError = 'Server did not respond in time. Please try again.';
+          if (!this.isAuthenticated) {
+            this.isAuthenticated = false;
+            this.authError = 'Server did not respond in time. Please try again.';
+          }
           this.cdr.detectChanges();
           return;
         }
@@ -169,18 +179,23 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   }
 
   toggleExpand(sessionId: number): void {
-    this.expandedSessionId = this.expandedSessionId === sessionId ? null : sessionId;
-    this.newDriverName = '';
+    if (this.expandedSessionId === sessionId) {
+      delete this.newDriverNames[sessionId];
+      this.expandedSessionId = null;
+      return;
+    }
+
+    this.expandedSessionId = sessionId;
   }
 
 
 
   addDriver(sessionId: number): void {
-    const name = this.newDriverName.trim();
+    const name = this.getNewDriverName(sessionId).trim();
     if (!name) return;
 
     this.socket.emit('driverAdded', { sessionId, driverName: name });
-    this.newDriverName = '';
+    delete this.newDriverNames[sessionId];
   }
 
   startEdit(sessionId: number, driverName: string): void {
@@ -231,6 +246,10 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
     }));
   }
 
+  getNewDriverName(sessionId: number): string {
+    return this.newDriverNames[sessionId] ?? '';
+  }
+
   canAddDriver(session: Session): boolean {
     return session.driverNames.length < 8 && !this.isLocked(session);
   }
@@ -244,6 +263,33 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
       }
     }
     if (event.key === 'Escape' && action === 'confirmEdit') {
+      this.cancelEdit();
+    }
+  }
+
+  private pruneLockedSessionIds(activeSessionIds: Set<number>): void {
+    for (const sessionId of this.lockedSessionIds) {
+      if (!activeSessionIds.has(sessionId)) {
+        this.lockedSessionIds.delete(sessionId);
+      }
+    }
+  }
+
+  private pruneNewDriverNames(activeSessionIds: Set<number>): void {
+    for (const sessionId of Object.keys(this.newDriverNames)) {
+      const numericSessionId = Number(sessionId);
+      if (!activeSessionIds.has(numericSessionId)) {
+        delete this.newDriverNames[numericSessionId];
+      }
+    }
+  }
+
+  private clearStaleUiState(activeSessionIds: Set<number>): void {
+    if (this.expandedSessionId !== null && !activeSessionIds.has(this.expandedSessionId)) {
+      this.expandedSessionId = null;
+    }
+
+    if (this.editingDriver && !activeSessionIds.has(this.editingDriver.sessionId)) {
       this.cancelEdit();
     }
   }

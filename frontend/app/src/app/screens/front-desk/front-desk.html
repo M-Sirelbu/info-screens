@@ -143,7 +143,7 @@
             class="driver-input"
             type="text"
             placeholder="Driver name..."
-            [(ngModel)]="newDriverName"
+            [(ngModel)]="newDriverNames[session.sessionId]"
             (keydown)="onKeyDown($event, 'addDriver', session.sessionId)"
             *ngIf="expandedSessionId === session.sessionId"
           />
@@ -159,7 +159,7 @@
               <button
                 class="btn btn-success btn-sm"
                 (click)="addDriver(session.sessionId)"
-                [disabled]="!newDriverName.trim()"
+                [disabled]="!getNewDriverName(session.sessionId).trim()"
               >
                 ✓ Add
               </button>
