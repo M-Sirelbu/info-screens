@@ -52,7 +52,7 @@ class Repository {
         if (this.currentRace.sessionId === null) {
             return "Invalid Session Status";
         }
-        if (this.currentRace.status === "active") {
+        if (this.currentRace.status !== "notStarted") {
             return "Invalid Session Status";
         }
         this.currentRace.remainingSeconds = this.defaultRaceDuration;

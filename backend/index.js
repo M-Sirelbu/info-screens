@@ -38,16 +38,6 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
-function broadcastRaceState() {
-    io.to("race-control").emit("raceStateUpdate", repository.currentRace);
-    io.to("leader-board").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-countdown").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-flags").emit("raceStateUpdate", repository.currentRace);
-    io.to("next-race").emit("raceStateUpdate", repository.currentRace);
-    io.to("lap-line-tracker").emit("raceStateUpdate", repository.currentRace);
-    io.to("front-desk").emit("raceStateUpdate", repository.currentRace);    
-}
-
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
@@ -83,7 +73,9 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        io.to("race-countdown").emit("startCountDown", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
         callback({ status: "Success" });
     });
 
