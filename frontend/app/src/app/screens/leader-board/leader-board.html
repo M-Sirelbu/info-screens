@@ -1,1 +1,36 @@
-<p>leader-board works!</p>
+<div>
+  <button (click)="enterFullscreen()">Full Screen</button>
+
+  <p *ngIf="connectionError">{{ connectionError }}</p>
+
+  <!-- Timer and flag status -->
+  <div>
+    <span>Time Remaining: {{ formatTime(remainingSeconds) }}</span>
+    <span> | Flag: {{ currentFlag ?? 'none' }}</span>
+    <span> | Status: {{ sessionStatus }}</span>
+  </div>
+
+  <!-- Leaderboard table -->
+  <table *ngIf="entries.length > 0">
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Car</th>
+        <th>Driver</th>
+        <th>Laps</th>
+        <th>Best Lap</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of sortedEntries; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ entry.carNumber }}</td>
+        <td>{{ entry.driverName }}</td>
+        <td>{{ entry.completedLaps }}</td>
+        <td>{{ formatLapTime(entry.bestLapTime) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="entries.length === 0">No active race session.</p>
+</div>
