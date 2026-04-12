@@ -48,23 +48,6 @@ class Repository {
         return "Session not found";
     }
 
-    startRace() {
-        if (this.currentRace.sessionId === null) {
-            return {
-                status: "Error",
-                message: "No session loaded"
-            };
-        }
-        this.currentRace.status = "running";
-        this.currentRace.flag = "green";
-        this.currentRace.remainingSeconds = this.defaultRaceDuration;
-
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
-    }
-
     setFlag(flag) {
         const allowedFlags = ["green", "yellow", "red", "finish"];
 
