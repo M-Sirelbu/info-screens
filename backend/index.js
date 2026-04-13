@@ -53,6 +53,36 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
+function broadcastSessionStatus() {
+    const sessionStatus = repository.getSessionStatus();
+
+    io.to("race-control").emit("sessionStatus", sessionStatus);
+    io.to("lap-line-tracker").emit("sessionStatus", sessionStatus);
+    io.to("leader-board").emit("sessionStatus", sessionStatus);
+}
+
+function broadcastFlagChanged() {
+    const flag = repository.getFlag();
+
+    io.to("race-control").emit("flagChanged", flag);
+    io.to("leader-board").emit("flagChanged", flag);
+    io.to("race-flags").emit("flagChanged", flag);
+}
+
+function broadcastNextSession() {
+    const result = repository.getNextSession();
+
+    if (result.status !== "Success") {
+        io.to("next-race").emit("nextSessionUpdate", {
+            status: "Error",
+            message: result.message
+        });
+        return;
+    }
+
+    io.to("next-race").emit("nextSessionUpdate", result.session);
+}
+
 io.on('connection', (socket) => {
     socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
@@ -77,8 +107,26 @@ io.on('connection', (socket) => {
 
     socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({ status: "Race not Active" });
-    socket.on("raceStartCountdown", (callback) => {
+            callback({
+                status: "Error",
+                message: "Unauthorized"
+            });
+            return;
+        }
+
+        const result = repository.startRace();
+
+        if (result.status !== "Success") {
+            callback(result);
+            return;
+        }
+
+        broadcastSessionStatus();
+        broadcastFlagChanged();
+        callback({ status: "Success" });
+    });
+
+    socket.on("setFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Invalid Session Status" });
             return;
@@ -91,13 +139,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        io.to("race-control")
-        .to("leader-board")
-        .to("race-flags")
-        .emit("flagChanged", { flag: repository.currentRace.flag });
-        io.to("race-countdown").emit("startCountDown", {
-            remainingSeconds: repository.currentRace.remainingSeconds
-        });
+        broadcastFlagChanged();
         callback({ status: "Success" });
     });
 
@@ -117,7 +159,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
         callback({ status: "Success" });
     });
 
@@ -128,7 +171,10 @@ io.on('connection', (socket) => {
 
         repository.endSession();
 
-        broadcastRaceState();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
+        broadcastNextSession();
+        callback({ status: "Success" });
     });
 
     // Event listeners as modules can be added here

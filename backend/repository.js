@@ -98,6 +98,15 @@ class Repository {
             return;
         }
 
+        this.currentRace = {
+            status: "notStarted",
+            sessionId: null,
+            carNumbers: null,
+            completedLaps: null,
+            bestLapTime: null,
+            flag: "red",
+            remainingSeconds: null
+        };
         this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
 
