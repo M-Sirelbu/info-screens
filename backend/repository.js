@@ -74,6 +74,12 @@ class Repository {
 
         if (this.currentRace.status !== "active") {
             return "Race not Active";
+        if (this.currentRace.status !== "running") {
+            return "Race not Active";
+        }
+
+        if (this.currentRace.flag === flag) {
+            return "Flag Not Changed";
         }
 
         this.currentRace.flag = flag;
@@ -81,6 +87,14 @@ class Repository {
         if (flag === "finish") {
             this.currentRace.status = "finished";
         }
+    beginStartCountdown() {
+        if (this.currentRace.sessionId === null) {
+            return "Invalid Session Status";
+        }
+        if (this.currentRace.status !== "notStarted") {
+            return "Invalid Session Status";
+        }
+        this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
         return "Success";
     }
