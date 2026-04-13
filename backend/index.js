@@ -43,6 +43,7 @@ io.on('connection', (socket) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -59,25 +60,22 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("raceFlag", (args, callback) => {
+    socket.on("raceStartCountdown", (callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({ status: "Race not Active" });
+            callback({ status: "Invalid Session Status" });
             return;
         }
 
-        const result = repository.setFlag(args.flag);
+        const result = repository.beginStartCountdown();
 
         if (result !== "Success") {
             callback({ status: result });
             return;
         }
 
-        io.to("race-control")
-            .to("leader-board")
-            .to("race-countdown")
-            .to("race-flags")
-            .to("next-race")
-            .emit("raceStateUpdate", repository.currentRace);
+        io.to("race-countdown").emit("startCountDown", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
         callback({ status: "Success" });
     });
 
