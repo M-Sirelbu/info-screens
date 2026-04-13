@@ -47,5 +47,22 @@ class Repository {
         }
         return "Session not found";
     }
+
+    beginStartCountdown() {
+        if (this.currentRace.sessionId === null) {
+            return "Invalid Session Status";
+        }
+        if (this.currentRace.status !== "notStarted") {
+            return "Invalid Session Status";
+        }
+        this.currentRace.remainingSeconds = this.defaultRaceDuration;
+
+        return "Success";
+    }
+
+     // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
+ }
+
+module.exports = Repository;
+
     // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
-}

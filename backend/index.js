@@ -43,6 +43,7 @@ io.on('connection', (socket) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -58,5 +59,27 @@ io.on('connection', (socket) => {
             callback({status: "Invalid Room"});
         }
     });
+
+    socket.on("raceStartCountdown", (callback) => {
+        if (!socket.rooms.has("race-control")) {
+            callback({ status: "Invalid Session Status" });
+            return;
+        }
+
+        const result = repository.beginStartCountdown();
+
+        if (result !== "Success") {
+            callback({ status: result });
+            return;
+        }
+
+        io.to("race-countdown").emit("startCountDown", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
+        callback({ status: "Success" });
+    });
+
     // Event listeners as modules can be added here
 });
+
+console.log("Socket.IO backend running on port 3000");
