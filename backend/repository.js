@@ -48,6 +48,23 @@ class Repository {
         return "Session not found";
     }
 
+    startRace() {
+        if (this.currentRace.sessionId === null) {
+            return {
+                status: "Error",
+                message: "No session loaded"
+            };
+        }
+        this.currentRace.status = "active";
+        this.currentRace.flag = "green";
+        this.currentRace.remainingSeconds = this.defaultRaceDuration;
+
+        return {
+            status: "Success",
+            race: this.currentRace
+        };
+    }
+
     setFlag(flag) {
         const allowedFlags = ["green", "yellow", "red", "finish"];
 
@@ -55,6 +72,8 @@ class Repository {
             return "Invalid flag";
         }
 
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
         if (this.currentRace.status !== "running") {
             return "Race not Active";
         }
@@ -65,6 +84,9 @@ class Repository {
 
         this.currentRace.flag = flag;
 
+        if (flag === "finish") {
+            this.currentRace.status = "finished";
+        }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
             return "Invalid Session Status";

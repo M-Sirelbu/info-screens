@@ -60,6 +60,9 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on("raceFlag", (args, callback) => {
+        if (!socket.rooms.has("race-control")) {
+            callback({ status: "Race not Active" });
     socket.on("raceStartCountdown", (callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Invalid Session Status" });
@@ -73,6 +76,10 @@ io.on('connection', (socket) => {
             return;
         }
 
+        io.to("race-control")
+        .to("leader-board")
+        .to("race-flags")
+        .emit("flagChanged", { flag: repository.currentRace.flag });
         io.to("race-countdown").emit("startCountDown", {
             remainingSeconds: repository.currentRace.remainingSeconds
         });
