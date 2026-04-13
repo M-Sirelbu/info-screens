@@ -1,9 +1,140 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { io, Socket } from 'socket.io-client';
+
+type SessionStatus = 'notStarted' | 'active' | 'finished';
 
 @Component({
   selector: 'app-lap-line-tracker',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './lap-line-tracker.html',
   styleUrl: './lap-line-tracker.scss',
 })
-export class LapLineTracker {}
+export class LapLineTracker implements OnInit, OnDestroy {
+  private socket!: Socket;
+
+  readonly carNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  accessKey = '';
+  isAuthenticated = false;
+  isConnecting = false;
+  isConnected = false;
+  authError = '';
+  statusMessage = 'Enter access key to connect.';
+  sessionStatus: SessionStatus = 'notStarted';
+
+  private hasRaceProgressed = false;
+
+  ngOnInit(): void {
+    this.socket = io({ autoConnect: false, reconnection: true });
+
+    this.socket.on('connect', () => {
+      this.isConnected = true;
+      this.joinLapLineRoom();
+    });
+
+    this.socket.on('disconnect', () => {
+      this.isConnected = false;
+      if (this.isAuthenticated) {
+        this.statusMessage = 'Connection lost. Reconnecting...';
+      }
+    });
+
+    this.socket.on('connect_error', () => {
+      this.isConnecting = false;
+      this.isConnected = false;
+      this.statusMessage = 'Unable to connect to server.';
+    });
+
+    this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
+      const previousStatus = this.sessionStatus;
+      this.sessionStatus = args.status;
+
+      if (args.status === 'active' || args.status === 'finished') {
+        this.hasRaceProgressed = true;
+      }
+
+      if (args.status === 'active') {
+        this.statusMessage = 'Race active. Tap car buttons as cars cross the line.';
+        return;
+      }
+
+      if (args.status === 'finished') {
+        this.statusMessage = 'Finish mode active. Final laps can still be recorded.';
+        return;
+      }
+
+      if (args.status === 'notStarted' && this.hasRaceProgressed && previousStatus !== 'notStarted') {
+        this.statusMessage = 'Race session ended. Lap input is disabled between sessions.';
+        return;
+      }
+
+      this.statusMessage = 'Waiting for race start.';
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+
+  connect(): void {
+    if (!this.accessKey.trim() || this.isConnecting) {
+      return;
+    }
+
+    this.isConnecting = true;
+    this.authError = '';
+    this.statusMessage = 'Connecting...';
+
+    if (this.socket.connected) {
+      this.joinLapLineRoom();
+      return;
+    }
+
+    this.socket.connect();
+  }
+
+  sendLap(carNumber: number): void {
+    if (!this.canRecordLaps) {
+      return;
+    }
+
+    this.socket.emit('lap', { carNumber });
+  }
+
+  get canRecordLaps(): boolean {
+    return this.isAuthenticated && this.isConnected && this.sessionStatus !== 'notStarted';
+  }
+
+  trackByCarNumber(_index: number, carNumber: number): number {
+    return carNumber;
+  }
+
+  private joinLapLineRoom(): void {
+    this.socket.emit(
+      'selectRoom',
+      { room: 'lap-line-tracker', key: this.accessKey },
+      (response: { status: string }) => {
+        this.isConnecting = false;
+
+        if (response?.status === 'Success') {
+          this.isAuthenticated = true;
+          this.authError = '';
+          this.statusMessage = 'Connected. Waiting for race start.';
+          return;
+        }
+
+        this.isAuthenticated = false;
+        this.authError = response?.status === 'Invalid Access Key'
+          ? 'Invalid access key. Please try again.'
+          : (response?.status ?? 'Room connection failed.');
+        this.statusMessage = 'Authentication required.';
+        this.socket.disconnect();
+      }
+    );
+  }
+}
