@@ -38,29 +38,12 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
-function broadcastRaceState() {
-    io.to("race-control").emit("raceStateUpdate", repository.currentRace);
-    io.to("leader-board").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-countdown").emit("raceStateUpdate", repository.currentRace);
-    io.to("race-flags").emit("raceStateUpdate", repository.currentRace);
-    io.to("next-race").emit("raceStateUpdate", repository.currentRace);
-}
-
-function broadcastNextSession() {
-    const result = repository.getNextSession();
-
-    if (result.status !== "Success") {
-        return;
-    }
-
-    io.to("next-race").emit("nextSessionUpdate", result.session);
-}
-
 io.on('connection', (socket) => {
     socket.on("selectRoom", (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -77,43 +60,29 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("startRace", (callback) => {
+    socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
-            return;
-        }
-
-        const result = repository.startRace();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        broadcastRaceState();
-        callback({ status: "Success" });
-    });
-
-    socket.on("setFlag", (args, callback) => {
+            callback({ status: "Race not Active" });
+    socket.on("raceStartCountdown", (callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Invalid Session Status" });
             return;
         }
 
-        const result = repository.setFlag(args.flag);
+        const result = repository.beginStartCountdown();
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 
-        broadcastRaceState();
+        io.to("race-control")
+        .to("leader-board")
+        .to("race-flags")
+        .emit("flagChanged", { flag: repository.currentRace.flag });
+        io.to("race-countdown").emit("startCountDown", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
         callback({ status: "Success" });
     });
 
@@ -145,7 +114,6 @@ io.on('connection', (socket) => {
         repository.endSession();
 
         broadcastRaceState();
-        broadcastNextSession();
     });
 
     // Event listeners as modules can be added here
