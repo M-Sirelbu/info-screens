@@ -16,6 +16,7 @@ class Repository {
         remainingSeconds: null
     };
     defaultRaceDuration = null;
+    countdownInProgress = false;
     constructor(defaultRaceDuration) {
         this.defaultRaceDuration = defaultRaceDuration;
     }
@@ -24,12 +25,13 @@ class Repository {
         for (const session of this.sessions) {
             if (session.sessionId === sessionId) {
                 this.currentRace.sessionId = sessionId;
-                this.currentRace.carNumbers = session.carNumbers;
+                this.currentRace.carNumbers = [...session.carNumbers];
                 this.currentRace.completedLaps = [];
                 this.currentRace.bestLapTime = [];
                 this.currentRace.remainingSeconds = this.defaultRaceDuration;
                 this.currentRace.status = "notStarted";
                 this.currentRace.flag = "red";
+                this.countdownInProgress = false;
                 for (let i = 0; i < session.carNumbers.length; i++) {
                     this.currentRace.completedLaps.push(0);
                     this.currentRace.bestLapTime.push(0);
@@ -58,6 +60,7 @@ class Repository {
         this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
+        this.countdownInProgress = false;
 
         return {
             status: "Success",
@@ -82,6 +85,7 @@ class Repository {
 
         this.currentRace.status = "finished";
         this.currentRace.flag = "finish";
+        this.countdownInProgress = false;
 
         return {
             status: "Success",
@@ -99,48 +103,20 @@ class Repository {
         }
 
         this.currentRace = {
-            status: "notStarted",
-            sessionId: null,
-            carNumbers: null,
-            completedLaps: null,
-            bestLapTime: null,
-            flag: "red",
-            remainingSeconds: null
-        };
-        this.currentRace.status = "notStarted";
-        this.currentRace.flag = "red";
+           status: "notStarted",
+           sessionId: null,
+           carNumbers: null,
+           completedLaps: null,
+           bestLapTime: null,
+           flag: "red",
+           remainingSeconds: null
+       };
+       this.countdownInProgress = false;
 
-        return {
-            status: "Success",
-            race: this.currentRace
-        this.currentRace = {
-            status: "notStarted",
-            sessionId: null,
-            carNumbers: null,
-            completedLaps: null,
-            bestLapTime: null,
-            flag: "red",
-            remainingSeconds: null
-        };
-    }
-
-    getRaceState() {
-        return {
-            status: this.currentRace.status,
-            sessionId: this.currentRace.sessionId,
-            carNumbers: this.currentRace.carNumbers,
-            completedLaps: this.currentRace.completedLaps,
-            bestLapTime: this.currentRace.bestLapTime,
-            flag: this.currentRace.flag,
-            remainingSeconds: this.currentRace.remainingSeconds
-        };
-    }
-
-    getFlagState() {
-        return {
-            status: this.currentRace.status,
-            flag: this.currentRace.flag
-        };
+       return {
+           status: "Success",
+           race: this.currentRace
+       };
     }
 
     getNextSession() {
@@ -171,12 +147,6 @@ class Repository {
         }
 
         if (this.currentRace.status !== "active") {
-            return {
-                status: "Error",
-                message: "Race not running"
-            };
-            return "Race not Active";
-        if (this.currentRace.status !== "running") {
             return "Race not Active";
         }
 
@@ -188,7 +158,12 @@ class Repository {
 
         if (flag === "finish") {
             this.currentRace.status = "finished";
+            this.countdownInProgress = false;
         }
+
+        return "Success";
+    }
+
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
             return "Invalid Session Status";
@@ -196,6 +171,10 @@ class Repository {
         if (this.currentRace.status !== "notStarted") {
             return "Invalid Session Status";
         }
+       if (this.countdownInProgress) {
+           return "Countdown in Progress";
+       }
+       this.countdownInProgress = true;
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
         return "Success";
