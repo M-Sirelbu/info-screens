@@ -67,26 +67,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("startRace", (callback) => {
-        if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
-            return;
-        }
-
-        const result = repository.startRace();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        broadcastRaceState();
-        callback({ status: "Success" });
-    });
-
     socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Race not Active" });
@@ -100,7 +80,10 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastRaceState();
+        io.to("race-control")
+        .to("leader-board")
+        .to("race-flags")
+        .emit("flagChanged", { flag: repository.currentRace.flag });
         callback({ status: "Success" });
     });
 
