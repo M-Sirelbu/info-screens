@@ -98,6 +98,12 @@ class Repository {
             return;
         }
 
+        this.currentRace.status = "notStarted";
+        this.currentRace.flag = "red";
+
+        return {
+            status: "Success",
+            race: this.currentRace
         this.currentRace = {
             status: "notStarted",
             sessionId: null,
@@ -137,6 +143,10 @@ class Repository {
         }
 
         if (this.currentRace.status !== "active") {
+            return {
+                status: "Error",
+                message: "Race not running"
+            };
             return "Race not Active";
         if (this.currentRace.status !== "running") {
             return "Race not Active";
