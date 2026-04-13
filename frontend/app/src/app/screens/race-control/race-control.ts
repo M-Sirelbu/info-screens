@@ -19,12 +19,11 @@ export class RaceControl implements OnInit, OnDestroy {
   sessionStatus: SessionStatus = 'notStarted';
   currentFlag: RaceFlag | '' = '';
   message = '';
-  
-  // Temporary until proper UI for entering the key is added
-   // Planned approach: provide the key via a UI prompt or shared config once the unified HTML/SCSS screens are implemented.
-  accessKey = 'test-key';
+
+  accessKey = '';
 
   ngOnInit(): void {
+    this.accessKey = prompt('Enter access key') ?? '';
     this.socket = io();
 
     this.socket.on('connect', () => {
@@ -33,6 +32,9 @@ export class RaceControl implements OnInit, OnDestroy {
         if (response.status === 'Success') {
           this.connected = true;
           this.message = 'Connected';
+        } else if (response.status === 'Invalid Access Key') {
+          this.connected = false;
+          this.message = 'Invalid Access Key';
         } else {
           this.connected = false;
           this.message = response?.status ?? 'Connection failed';
@@ -55,18 +57,30 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   startRaceCountdown(): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('raceStartCountdown', {}, (response: { status: string }) => {
       this.message = response?.status ?? 'Command sent';
     });
   }
 
   changeFlag(flag: RaceFlag): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('raceFlag', { flag }, (response: { status: string }) => {
       this.message = response?.status ?? 'Flag updated';
     });
   }
 
   endSession(): void {
+    if (!this.socket || !this.connected) {
+    this.message = 'Not connected';
+    return;
+  }
     this.socket.emit('sessionEnd', {});
     this.message = 'Session end command sent';
   }
