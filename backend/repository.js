@@ -124,14 +124,21 @@ class Repository {
         };
     }
 
-    getSessionStatus() {
+    getRaceState() {
         return {
-            status: this.currentRace.status
+            status: this.currentRace.status,
+            sessionId: this.currentRace.sessionId,
+            carNumbers: this.currentRace.carNumbers,
+            completedLaps: this.currentRace.completedLaps,
+            bestLapTime: this.currentRace.bestLapTime,
+            flag: this.currentRace.flag,
+            remainingSeconds: this.currentRace.remainingSeconds
         };
     }
 
-    getFlag() {
+    getFlagState() {
         return {
+            status: this.currentRace.status,
             flag: this.currentRace.flag
         };
     }
@@ -198,5 +205,3 @@ class Repository {
  }
 
 module.exports = Repository;
-
-    // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
