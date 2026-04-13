@@ -53,38 +53,12 @@ if (!("NODE_ENV" in env)) {
 
 const repository = new Repository(raceDuration);
 
-function broadcastRaceState() {
-    const raceState = repository.getRaceState();
-
-    io.to("race-control").emit(serverEvents.RACE_STATE_UPDATE, raceState);
-    io.to("leader-board").emit(serverEvents.RACE_STATE_UPDATE, raceState);
-    io.to("race-countdown").emit(serverEvents.RACE_STATE_UPDATE, raceState);
-    io.to("race-flags").emit(serverEvents.RACE_STATE_UPDATE, raceState);
-    io.to("next-race").emit(serverEvents.RACE_STATE_UPDATE, raceState);
-}
-
-function broadcastNextSession() {
-    const result = repository.getNextSession();
-
-    if (result.status !== "Success") {
-        io.to("next-race").emit(serverEvents.NEXT_RACE_UPDATE, {
-            status: "Error",
-            message: result.message
-        });
-        return;
-    }
-
-    io.to("next-race").emit(serverEvents.NEXT_RACE_UPDATE, result.session);
-}
-
 io.on('connection', (socket) => {
     socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
-
-            // initial state tuleb läbi raceStateUpdate (FE kuulab seda)
-            socket.emit(serverEvents.RACE_STATE_UPDATE, repository.getRaceState());
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -101,43 +75,29 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on(clientEvents.START_RACE, (callback) => {
+    socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
-            return;
-        }
-
-        const result = repository.startRace();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        broadcastRaceState();
-        callback({ status: "Success" });
-    });
-
-    socket.on(clientEvents.SET_FLAG, (args, callback) => {
+            callback({ status: "Race not Active" });
+    socket.on("raceStartCountdown", (callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Invalid Session Status" });
             return;
         }
 
-        const result = repository.setFlag(args.flag);
+        const result = repository.beginStartCountdown();
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 
-        broadcastRaceState();
+        io.to("race-control")
+        .to("leader-board")
+        .to("race-flags")
+        .emit("flagChanged", { flag: repository.currentRace.flag });
+        io.to("race-countdown").emit("startCountDown", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
         callback({ status: "Success" });
     });
 
@@ -161,46 +121,14 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on(clientEvents.END_SESSION, (callback) => {
+    socket.on("sessionEnd", () => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
             return;
         }
 
-        const result = repository.endSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
+        repository.endSession();
 
         broadcastRaceState();
-        broadcastNextSession();
-        callback({ status: "Success" });
-    });
-
-    socket.on(clientEvents.GET_NEXT_RACE, (callback) => {
-        const result = repository.getNextSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        callback({
-            status: "Success",
-            nextSession: result.session
-        });
-    });
-
-    socket.on(clientEvents.GET_RACE_STATE, (callback) => {
-        callback({
-            status: "Success",
-            raceState: repository.getRaceState()
-        });
     });
 
     // Event listeners as modules can be added here

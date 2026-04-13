@@ -55,7 +55,7 @@ class Repository {
                 message: "No session loaded"
             };
         }
-        this.currentRace.status = "running";
+        this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
 
@@ -73,7 +73,7 @@ class Repository {
             };
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
@@ -81,7 +81,7 @@ class Repository {
         }
 
         this.currentRace.status = "finished";
-        this.currentRace.flag = "chequered";
+        this.currentRace.flag = "finish";
 
         return {
             status: "Success",
@@ -91,25 +91,27 @@ class Repository {
 
     endSession() {
         if (this.currentRace.sessionId === null) {
-            return {
-                status: "Error",
-                message: "No session loaded"
-            };
+            return;
         }
 
         if (this.currentRace.status !== "finished") {
-            return {
-                status: "Error",
-                message: "Race not finished"
-            };
+            return;
         }
 
-        this.currentRace.status = "sessionEnded";
+        this.currentRace.status = "notStarted";
         this.currentRace.flag = "red";
 
         return {
             status: "Success",
             race: this.currentRace
+        this.currentRace = {
+            status: "notStarted",
+            sessionId: null,
+            carNumbers: null,
+            completedLaps: null,
+            bestLapTime: null,
+            flag: "red",
+            remainingSeconds: null
         };
     }
 
@@ -147,35 +149,47 @@ class Repository {
             session: {
                 sessionId: nextSession.sessionId,
                 driverNames: nextSession.driverNames,
-                carNumbers: nextSession.carNumbers,
-                message: "Proceed to paddock"
+                carNumbers: nextSession.carNumbers
             }
         };
     }
 
     setFlag(flag) {
-        const allowedFlags = ["green", "yellow", "red", "chequered"];
+        const allowedFlags = ["green", "yellow", "red", "finish"];
 
         if (!allowedFlags.includes(flag)) {
-            return {
-                status: "Error",
-                message: "Invalid flag"
-            };
+            return "Invalid flag";
         }
 
-        if (this.currentRace.status !== "running") {
+        if (this.currentRace.status !== "active") {
             return {
                 status: "Error",
                 message: "Race not running"
             };
+            return "Race not Active";
+        if (this.currentRace.status !== "running") {
+            return "Race not Active";
+        }
+
+        if (this.currentRace.flag === flag) {
+            return "Flag Not Changed";
         }
 
         this.currentRace.flag = flag;
 
-        return {
-            status: "Success",
-            race: this.currentRace
-        };
+        if (flag === "finish") {
+            this.currentRace.status = "finished";
+        }
+    beginStartCountdown() {
+        if (this.currentRace.sessionId === null) {
+            return "Invalid Session Status";
+        }
+        if (this.currentRace.status !== "notStarted") {
+            return "Invalid Session Status";
+        }
+        this.currentRace.remainingSeconds = this.defaultRaceDuration;
+
+        return "Success";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
