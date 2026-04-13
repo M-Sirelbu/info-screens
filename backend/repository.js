@@ -48,6 +48,23 @@ class Repository {
         return "Session not found";
     }
 
+    setFlag(flag) {
+        const allowedFlags = ["green", "yellow", "red", "finish"];
+
+        if (!allowedFlags.includes(flag)) {
+            return "Invalid flag";
+        }
+
+        if (this.currentRace.status !== "running") {
+            return "Race not Active";
+        }
+
+        if (this.currentRace.flag === flag) {
+            return "Flag Not Changed";
+        }
+
+        this.currentRace.flag = flag;
+
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
             return "Invalid Session Status";
