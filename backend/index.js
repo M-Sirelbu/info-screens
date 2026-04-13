@@ -14,37 +14,30 @@ const privateRooms = ["front-desk", "race-control", "lap-line-tracker"];
 
 const clientEvents = {
     SELECT_ROOM: "selectRoom",
-    START_RACE: "startRace",
-    SET_FLAG: "setFlag",
-    FINISH_RACE: "finishRace",
-    END_SESSION: "endSession",
-    GET_NEXT_RACE: "getNextRace",
-    GET_RACE_STATE: "getRaceState"
-};
-
-const serverEvents = {
-    RACE_STATE_UPDATE: "raceStateUpdate",
-    NEXT_RACE_UPDATE: "nextRaceUpdate"
+    RACE_FLAG: "raceFlag",
+    RACE_START_COUNTDOWN: "raceStartCountdown",
+    SESSION_END: "sessionEnd"
 };
 
 if (!("receptionist_key" in env) || !("observer_key" in env) || !("safety_key" in env)) {
     console.error("Missing environment variables for private room keys. Please set receptionist_key, observer_key, and safety_key.");
     process.exit(1);
 }
+
 const privateRoomKeys = {
     "front-desk": env.receptionist_key,
     "race-control": env.safety_key,
     "lap-line-tracker": env.observer_key
-}
+};
 
 let raceDuration = 60;
 if (!("NODE_ENV" in env)) {
     console.warn("NODE_ENV not set. Defaulting to development mode with a race duration of 60 seconds.");
 } else {
     if (env.NODE_ENV === "production") {
-        raceDuration = 600; // 10 minutes for production
+        raceDuration = 600;
     } else if (env.NODE_ENV === "development") {
-        raceDuration = 60; // 1 minute for development
+        raceDuration = 60;
     } else {
         raceDuration = 60;
         console.warn(`Unknown NODE_ENV value: ${env.NODE_ENV}. Defaulting to development mode with a race duration of 60 seconds.`);
@@ -83,50 +76,54 @@ function broadcastNextSession() {
     io.to("next-race").emit("nextSessionUpdate", result.session);
 }
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
     socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
-            callback({status: "Success"});
+            callback({ status: "Success" });
             onConnection(socket, repository, args.room);
-        } else if (privateRooms.includes(args.room)) {
+            return;
+        }
+
+        if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
-                callback({status: "Success"});
+                callback({ status: "Success" });
                 onConnection(socket, repository, args.room);
             } else {
-                // does not impose timeout on entering room, only feedback
                 setTimeout(() => {
                     callback({ status: "Invalid Access Key" });
                 }, 500);
             }
-        } else {
-            callback({status: "Invalid Room"});
+            return;
         }
+
+        callback({ status: "Invalid Room" });
     });
 
-    socket.on("raceFlag", (args, callback) => {
+    socket.on(clientEvents.RACE_FLAG, (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Race not Active" });
             return;
         }
 
-        const result = repository.startRace();
+        const result = repository.setFlag(args.flag);
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 
-        broadcastSessionStatus();
         broadcastFlagChanged();
+
+        if (args.flag === "finish") {
+            broadcastSessionStatus();
+        }
+
         callback({ status: "Success" });
     });
 
-    socket.on("setFlag", (args, callback) => {
+    socket.on(clientEvents.RACE_START_COUNTDOWN, (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Invalid Session Status" });
             return;
@@ -139,42 +136,19 @@ io.on('connection', (socket) => {
             return;
         }
 
-        broadcastFlagChanged();
+        io.to("race-countdown").emit("startCountdown", { duration: 10 });
         callback({ status: "Success" });
     });
 
-    socket.on(clientEvents.FINISH_RACE, (callback) => {
-        if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
-            return;
-        }
-
-        const result = repository.finishRace();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
-
-        broadcastSessionStatus();
-        broadcastFlagChanged();
-        callback({ status: "Success" });
-    });
-
-    socket.on("sessionEnd", () => {
+    socket.on(clientEvents.SESSION_END, () => {
         if (!socket.rooms.has("race-control")) {
             return;
         }
 
         repository.endSession();
-
         broadcastSessionStatus();
         broadcastFlagChanged();
         broadcastNextSession();
-        callback({ status: "Success" });
     });
 
     // Event listeners as modules can be added here

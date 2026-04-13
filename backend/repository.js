@@ -180,6 +180,18 @@ class Repository {
         return "Success";
     }
 
+    getSessionStatus() {
+        return {
+            status: this.currentRace.status
+        };
+    }
+
+    getFlag() {
+        return {
+            flag: this.currentRace.flag
+        };
+    }
+
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
  }
 
