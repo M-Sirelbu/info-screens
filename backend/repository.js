@@ -65,6 +65,50 @@ class Repository {
         };
     }
 
+    finishRace() {
+        if (this.currentRace.sessionId === null) {
+            return {
+                status: "Error",
+                message: "No session loaded"
+            };
+        }
+
+        if (this.currentRace.status !== "active") {
+            return {
+                status: "Error",
+                message: "Race not running"
+            };
+        }
+
+        this.currentRace.status = "finished";
+        this.currentRace.flag = "finish";
+
+        return {
+            status: "Success",
+            race: this.currentRace
+        };
+    }
+
+    endSession() {
+        if (this.currentRace.sessionId === null) {
+            return;
+        }
+
+        if (this.currentRace.status !== "finished") {
+            return;
+        }
+
+        this.currentRace = {
+            status: "notStarted",
+            sessionId: null,
+            carNumbers: null,
+            completedLaps: null,
+            bestLapTime: null,
+            flag: "red",
+            remainingSeconds: null
+        };
+    }
+
     setFlag(flag) {
         const allowedFlags = ["green", "yellow", "red", "finish"];
 
