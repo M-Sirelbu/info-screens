@@ -109,6 +109,26 @@ class Repository {
         };
     }
 
+    getNextSession() {
+        if (this.sessions.length === 0) {
+            return {
+                status: "Error",
+                message: "No upcoming sessions"
+            };
+        }
+
+        const nextSession = this.sessions[0];
+
+        return {
+            status: "Success",
+            session: {
+                sessionId: nextSession.sessionId,
+                driverNames: nextSession.driverNames,
+                carNumbers: nextSession.carNumbers
+            }
+        };
+    }
+
     setFlag(flag) {
         const allowedFlags = ["green", "yellow", "red", "finish"];
 
