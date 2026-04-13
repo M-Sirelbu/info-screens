@@ -12,6 +12,21 @@ const io = new Server(3000, {
 const publicRooms = ["leader-board", "next-race", "race-countdown", "race-flags"];
 const privateRooms = ["front-desk", "race-control", "lap-line-tracker"];
 
+const clientEvents = {
+    SELECT_ROOM: "selectRoom",
+    START_RACE: "startRace",
+    SET_FLAG: "setFlag",
+    FINISH_RACE: "finishRace",
+    END_SESSION: "endSession",
+    GET_NEXT_RACE: "getNextRace",
+    GET_RACE_STATE: "getRaceState"
+};
+
+const serverEvents = {
+    RACE_STATE_UPDATE: "raceStateUpdate",
+    NEXT_RACE_UPDATE: "nextRaceUpdate"
+};
+
 if (!("receptionist_key" in env) || !("observer_key" in env) || !("safety_key" in env)) {
     console.error("Missing environment variables for private room keys. Please set receptionist_key, observer_key, and safety_key.");
     process.exit(1);
@@ -39,7 +54,7 @@ if (!("NODE_ENV" in env)) {
 const repository = new Repository(raceDuration);
 
 io.on('connection', (socket) => {
-    socket.on("selectRoom", (args, callback) => {
+    socket.on(clientEvents.SELECT_ROOM, (args, callback) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
@@ -86,7 +101,7 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("finishRace", (callback) => {
+    socket.on(clientEvents.FINISH_RACE, (callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
