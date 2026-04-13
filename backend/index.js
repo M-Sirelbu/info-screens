@@ -73,10 +73,7 @@ io.on('connection', (socket) => {
         if (publicRooms.includes(args.room)) {
             socket.join(args.room);
             callback({status: "Success"});
-
-            if (args.room === "race-flags" && repository.currentRace.status === "active") {
-                socket.emit("flagChanged", repository.getFlag());
-            }
+            onConnection(socket, repository, args.room);
         } else if (privateRooms.includes(args.room)) {
             if (args.key === privateRoomKeys[args.room]) {
                 socket.join(args.room);
@@ -93,7 +90,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("startRace", (callback) => {
+    socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({
                 status: "Error",
@@ -116,17 +113,14 @@ io.on('connection', (socket) => {
 
     socket.on("setFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
+            callback({ status: "Invalid Session Status" });
             return;
         }
 
-        const result = repository.setFlag(args.flag);
+        const result = repository.beginStartCountdown();
 
-        if (result.status !== "Success") {
-            callback(result);
+        if (result !== "Success") {
+            callback({ status: result });
             return;
         }
 
@@ -155,21 +149,12 @@ io.on('connection', (socket) => {
         callback({ status: "Success" });
     });
 
-    socket.on("endSession", (callback) => {
+    socket.on("sessionEnd", () => {
         if (!socket.rooms.has("race-control")) {
-            callback({
-                status: "Error",
-                message: "Unauthorized"
-            });
             return;
         }
 
-        const result = repository.endSession();
-
-        if (result.status !== "Success") {
-            callback(result);
-            return;
-        }
+        repository.endSession();
 
         broadcastSessionStatus();
         broadcastFlagChanged();
