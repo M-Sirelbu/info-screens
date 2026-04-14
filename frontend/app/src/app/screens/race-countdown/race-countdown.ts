@@ -15,23 +15,47 @@ export class RaceCountdown implements OnInit, OnDestroy {
   connected = false;
   countdown: number | null = null;
   intervalId: any;
+  message = '';
 
   ngOnInit(): void {
     this.socket = io();
 
     this.socket.on('connect', () => {
-      this.connected = true;
-
-      this.socket.emit('selectRoom', { room: 'race-countdown' });
+      this.socket.emit('selectRoom', { room: 'race-countdown' },
+        (response?: { status?: string }) => {
+          if (response?.status === 'Success') {
+            this.connected = true;
+            this.message = 'Connected';
+          } else {
+            this.connected = false;
+            this.message = response?.status ?? 'Connection failed';
+        }
+      }
+    );
+  });
+  this.socket.on('disconnect', () => {
+    this.connected = false;
+    this.message = 'Connection lost';
     });
 
-    this.socket.on('raceStartCountdown', () => {
-      this.startCountdown();
-    });
+    this.socket.on('startCountdown', (args: { duration: number }, 
+      callback?: (response: { status: string}) => void
+    ) => {
+      this.startCountdown(args?.duration ?? 10);
+
+      if (callback) {
+      callback({ status: 'Success' });
+      }
+     }
+    );
   }
 
-  startCountdown(): void {
-    this.countdown = 10;
+  startCountdown(duration: number): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    
+    this.countdown = duration;
 
     this.intervalId = setInterval(() => {
       if (this.countdown !== null) {
@@ -39,14 +63,24 @@ export class RaceCountdown implements OnInit, OnDestroy {
 
         if (this.countdown <= 0) {
           clearInterval(this.intervalId);
+          this.intervalId = null;
           this.countdown = null;
         }
       }
     }, 1000);
   }
 
+  enterFullscreen(): void {
+  document.documentElement.requestFullscreen();
+}
+
   ngOnDestroy(): void {
-    if (this.socket) this.socket.disconnect();
-    if (this.intervalId) clearInterval(this.intervalId);
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 }

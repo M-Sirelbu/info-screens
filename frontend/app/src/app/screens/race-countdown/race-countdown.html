@@ -1,9 +1,11 @@
 <div class="countdown-screen">
-  <h1 *ngIf="countdown !== null">
-    {{ countdown }}
-  </h1>
+  <button class="fullscreen-btn" (click)="enterFullscreen()">Full Screen</button>
 
-  <p *ngIf="countdown === null">
-    Waiting for race start...
-  </p>
+  <ng-container *ngIf="countdown !== null; else idleState">
+    <h1 class="countdown-value">{{ countdown }}</h1>
+  </ng-container>
+
+  <ng-template #idleState>
+    <p class="idle-message">Waiting for race start...</p>
+  </ng-template>
 </div>
