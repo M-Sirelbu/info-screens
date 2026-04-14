@@ -1,17 +1,15 @@
 <div class="next-race">
-  <h1>Next Race</h1>
+  <button class="fullscreen-btn" (click)="enterFullscreen()">Full Screen</button>
 
   <p><strong>Connection:</strong> {{ connected ? 'Connected' : 'Disconnected' }}</p>
   <p><strong>Message:</strong> {{ message }}</p>
 
-  <ng-container *ngIf="nextSession; else noSession">
-    <p><strong>Session ID:</strong> {{ nextSession.sessionId }}</p>
-    <p><strong>Status:</strong> {{ nextSession.status }}</p>
-
-    <h2>Drivers and cars</h2>
-    <ul>
-      <li *ngFor="let item of getDriverCarPairs()">
-        {{ item.driver }} — Car {{ item.car }}
+  <ng-container *ngIf="(nextSession?.driverNames?.length ?? 0) > 0; else noSession">
+    <p><strong>Session ID:</strong> {{ nextSession?.sessionId }}</p>
+    
+        <ul>
+      <li *ngFor="let pair of getDriverCarPairs()">
+        Driver: {{ pair.driver }} | Car: {{ pair.car }}
       </li>
     </ul>
   </ng-container>

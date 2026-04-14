@@ -4,9 +4,8 @@ import { io, Socket } from 'socket.io-client';
 
 type NextSessionPayload = {
   sessionId: number;
-  drivers: string[];
-  cars: number[];
-  status: string;
+  driverNames: string[];
+  carNumbers: number[];
 };
 
 @Component({
@@ -27,23 +26,30 @@ export class NextRace implements OnInit, OnDestroy {
     this.socket = io();
 
     this.socket.on('connect', () => {
-      this.connected = true;
-      this.message = 'Connected';
-
       this.socket.emit('selectRoom', { room: 'next-race' }, (response?: { status?: string }) => {
-        if (response?.status && response.status !== 'Success') {
-          this.message = response.status;
+        if (response?.status === 'Success') {
+          this.connected = true;
+          this.message = 'Connected';
+        } else {
+          this.connected = false;
+          this.message = response?.status ?? 'Connection failed';
         }
-      });
+       }
+      );
     });
 
     this.socket.on('disconnect', () => {
       this.connected = false;
       this.message = 'Connection lost';
     });
-
-    this.socket.on('next_session', (data: NextSessionPayload) => {
-      this.nextSession = data;
+  
+    this.socket.on('nextSessionUpdate', (data: any) => {
+      if (data?.driverNames && data?.carNumbers) {
+        this.nextSession = data;
+      } else {
+        this.nextSession = null;
+        this.message = data?.message ?? 'No upcoming session available';
+      }
     });
   }
 
@@ -57,10 +63,12 @@ export class NextRace implements OnInit, OnDestroy {
     if (!this.nextSession) {
       return [];
     }
-
-    return this.nextSession.drivers.map((driver, index) => ({
+    return this.nextSession.driverNames.map((driver, index) => ({
       driver,
-      car: this.nextSession?.cars[index] ?? null,
+      car: this.nextSession?.carNumbers[index] ?? null,
     }));
+  }
+  enterFullscreen(): void {
+    document.documentElement.requestFullscreen();
   }
 }
