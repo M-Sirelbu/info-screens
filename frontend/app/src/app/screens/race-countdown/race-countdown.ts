@@ -33,18 +33,19 @@ export class RaceCountdown implements OnInit, OnDestroy {
       }
     );
   });
+  
   this.socket.on('disconnect', () => {
     this.connected = false;
     this.message = 'Connection lost';
     });
 
     this.socket.on('startCountdown', (args: { duration: number }, 
-      callback?: (response: { status: string}) => void
+      callback?: () => void
     ) => {
       this.startCountdown(args?.duration ?? 10);
 
       if (callback) {
-      callback({ status: 'Success' });
+      callback();
       }
      }
     );
