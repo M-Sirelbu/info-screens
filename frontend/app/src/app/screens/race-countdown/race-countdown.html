@@ -1,1 +1,9 @@
-<p>race-countdown works!</p>
+<div class="countdown-screen">
+  <h1 *ngIf="countdown !== null">
+    {{ countdown }}
+  </h1>
+
+  <p *ngIf="countdown === null">
+    Waiting for race start...
+  </p>
+</div>
