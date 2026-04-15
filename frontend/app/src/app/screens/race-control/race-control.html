@@ -1,1 +1,40 @@
-<p>race-control works!</p>
+<main>
+	<h1>Race Control</h1>
+
+	<p>Connection: {{ connected ? 'Connected' : 'Not connected' }}</p>
+	<p>Session status: {{ sessionStatus }}</p>
+	<p>Current flag: {{ currentFlag || '-' }}</p>
+	<p>Message: {{ message || '-' }}</p>
+
+	<hr />
+
+	<section>
+		<h2>Race</h2>
+		<button type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
+			Start Race
+		</button>
+	</section>
+
+	<section>
+		<h2>Flags</h2>
+		<button type="button" (click)="changeFlag('green')" [disabled]="!canUseFlags()">
+			Safe (Green)
+		</button>
+		<button type="button" (click)="changeFlag('yellow')" [disabled]="!canUseFlags()">
+			Hazard (Yellow)
+		</button>
+		<button type="button" (click)="changeFlag('red')" [disabled]="!canUseFlags()">
+			Danger (Red)
+		</button>
+		<button type="button" (click)="changeFlag('finish')" [disabled]="!canUseFlags()">
+			Finish (Chequered)
+		</button>
+	</section>
+
+	<section>
+		<h2>Session</h2>
+		<button type="button" (click)="endSession()" [disabled]="!canEndSession()">
+			End Session
+		</button>
+	</section>
+</main>
