@@ -6,9 +6,11 @@ import { LeaderBoard } from './screens/leader-board/leader-board';
 import { NextRace } from './screens/next-race/next-race';
 import { RaceCountdown } from './screens/race-countdown/race-countdown';
 import { RaceFlags } from './screens/race-flags/race-flags';
+import { Home } from './screens/home/home';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'next-race', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'home', component: Home },
   { path: 'front-desk', component: FrontDesk },
   { path: 'race-control', component: RaceControl },
   { path: 'lap-line-tracker', component: LapLineTracker },
@@ -16,5 +18,5 @@ export const routes: Routes = [
   { path: 'next-race', component: NextRace },
   { path: 'race-countdown', component: RaceCountdown },
   { path: 'race-flags', component: RaceFlags },
-  { path: '**', redirectTo: 'next-race' }
+  { path: '**', redirectTo: 'home' }
 ];
