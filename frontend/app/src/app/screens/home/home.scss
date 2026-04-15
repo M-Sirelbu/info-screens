@@ -1,0 +1,126 @@
+.home-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at 15% 20%, #1db954 0%, transparent 35%),
+    radial-gradient(circle at 85% 80%, #f7c32e 0%, transparent 32%),
+    linear-gradient(145deg, #10202f 0%, #15283c 45%, #0d1a28 100%);
+  color: #f6f8fb;
+}
+
+.home-card {
+  width: min(980px, 100%);
+  padding: 2rem;
+  border-radius: 20px;
+  background: rgba(8, 16, 26, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2.3vw, 2.5rem);
+  letter-spacing: 0.03em;
+}
+
+.intro {
+  margin: 0.6rem 0 1.6rem;
+  color: #d9e4ef;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.screen-group {
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.screen-group header {
+  margin-bottom: 0.85rem;
+}
+
+.screen-group h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.screen-group p {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  color: #c3d3e3;
+}
+
+.screen-group.secured {
+  background: linear-gradient(180deg, rgba(243, 163, 74, 0.14), rgba(243, 163, 74, 0.06));
+  border-color: rgba(243, 163, 74, 0.34);
+}
+
+.screen-group.public {
+  background: linear-gradient(180deg, rgba(89, 174, 255, 0.14), rgba(89, 174, 255, 0.06));
+  border-color: rgba(89, 174, 255, 0.34);
+}
+
+.screen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.screen-btn {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  padding: 0.75rem;
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0f1f2e;
+  background: linear-gradient(135deg, #f7f8fa, #e5ecf3);
+  border: 1px solid rgba(16, 32, 48, 0.15);
+  transition: transform 140ms ease, box-shadow 140ms ease, background 160ms ease;
+}
+
+.screen-btn:hover,
+.screen-btn:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(11, 20, 32, 0.3);
+  background: linear-gradient(135deg, #ffffff, #ecf4ff);
+}
+
+.secured .screen-btn {
+  background: linear-gradient(135deg, #f8ecdc, #ffe2c0);
+}
+
+.secured .screen-btn:hover,
+.secured .screen-btn:focus-visible {
+  background: linear-gradient(135deg, #ffeed8, #ffd7a8);
+}
+
+.public .screen-btn {
+  background: linear-gradient(135deg, #e7f2ff, #d6e9ff);
+}
+
+.public .screen-btn:hover,
+.public .screen-btn:focus-visible {
+  background: linear-gradient(135deg, #f0f7ff, #cfe6ff);
+}
+
+@media (max-width: 600px) {
+  .home-card {
+    padding: 1.2rem;
+  }
+
+  .screen-btn {
+    min-height: 70px;
+  }
+}
