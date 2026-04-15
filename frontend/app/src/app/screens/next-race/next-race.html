@@ -1,17 +1,32 @@
-<div class="next-race">
-  <button class="fullscreen-btn" (click)="enterFullscreen()">Full Screen</button>
+<p>next-race works!</p>
 
+<div class="next-race">
+  <button type="button" (click)="enterFullscreen()">Full Screen</button>
+
+  <h1>Next Race</h1>
   <p><strong>Connection:</strong> {{ connected ? 'Connected' : 'Disconnected' }}</p>
   <p><strong>Message:</strong> {{ message }}</p>
 
-  <ng-container *ngIf="(nextSession?.driverNames?.length ?? 0) > 0; else noSession">
-    <p><strong>Session ID:</strong> {{ nextSession?.sessionId }}</p>
-    
-        <ul>
-      <li *ngFor="let pair of getDriverCarPairs()">
-        Driver: {{ pair.driver }} | Car: {{ pair.car }}
-      </li>
-    </ul>
+  <ng-container *ngIf="nextSession; else noSession">
+    <p><strong>Session ID:</strong> {{ nextSession.sessionId }}</p>
+    <p *ngIf="nextSession.status"><strong>Status:</strong> {{ nextSession.status }}</p>
+
+    <ng-container *ngIf="getDriverCarPairs().length > 0; else noDriversYet">
+      <h2>Drivers and cars</h2>
+      <ul>
+        <li *ngFor="let item of getDriverCarPairs()">
+          {{ item.driver }} — Car {{ item.car }}
+        </li>
+      </ul>
+    </ng-container>
+
+    <ng-template #noDriversYet>
+      <p>No drivers have been assigned yet.</p>
+    </ng-template>
+
+    <p *ngIf="nextSession.status === 'ended'">
+      Please proceed to the paddock.
+    </p>
   </ng-container>
 
   <ng-template #noSession>

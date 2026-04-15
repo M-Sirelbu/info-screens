@@ -6,6 +6,8 @@ type NextSessionPayload = {
   sessionId: number;
   driverNames: string[];
   carNumbers: number[];
+  status?: string;
+  message?: string;
 };
 
 @Component({
@@ -43,13 +45,20 @@ export class NextRace implements OnInit, OnDestroy {
       this.message = 'Connection lost';
     });
   
-    this.socket.on('nextSessionUpdate', (data: any) => {
-      if (data?.driverNames && data?.carNumbers) {
+    this.socket.on('nextSessionUpdate', (data: unknown) => {
+      if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
-      } else {
-        this.nextSession = null;
-        this.message = data?.message ?? 'No upcoming session available';
+        this.message = '';
+        return;
       }
+
+      if (data && typeof data === 'object' && 'message' in data) {
+        this.nextSession = null;
+        this.message = String((data as { message?: string }).message ?? 'No upcoming session available');
+        return;
+      }
+
+      this.message = 'Unexpected update received';
     });
   }
 
@@ -57,6 +66,16 @@ export class NextRace implements OnInit, OnDestroy {
     if (this.socket) {
       this.socket.disconnect();
     }
+  }
+
+  private isNextSessionPayload(data: unknown): data is NextSessionPayload {
+    return !!data
+      && typeof data === 'object'
+      && 'sessionId' in data
+      && 'driverNames' in data
+      && 'carNumbers' in data
+      && Array.isArray((data as NextSessionPayload).driverNames)
+      && Array.isArray((data as NextSessionPayload).carNumbers);
   }
 
   getDriverCarPairs(): Array<{ driver: string; car: number | null }> {
