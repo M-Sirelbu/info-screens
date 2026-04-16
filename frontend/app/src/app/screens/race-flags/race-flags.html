@@ -1,1 +1,15 @@
-<p>race-flags works!</p>
+<main>
+	<h1>Race Flags</h1>
+
+	<p>Connection: {{ connected ? 'Connected' : 'Not connected' }}</p>
+	<p>Message: {{ message || '-' }}</p>
+
+	<hr />
+
+	<h2>Current Flag</h2>
+	<p *ngIf="currentFlag; else noFlag">{{ currentFlag }}</p>
+
+	<ng-template #noFlag>
+		<p>No flag selected</p>
+	</ng-template>
+</main>
