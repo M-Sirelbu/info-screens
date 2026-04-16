@@ -1,36 +1,42 @@
-<div>
-  <button (click)="enterFullscreen()">Full Screen</button>
+<section class="screen-page">
+  <article class="screen-panel leaderboard-screen">
+    <div class="header-row">
+      <div>
+        <h1>Leaderboard</h1>
+        <p class="screen-subtitle">Live race ranking and best laps.</p>
+      </div>
+      <button class="btn btn-primary" (click)="enterFullscreen()">Full Screen</button>
+    </div>
 
-  <p *ngIf="connectionError">{{ connectionError }}</p>
+    <p class="error" *ngIf="connectionError">{{ connectionError }}</p>
 
-  <!-- Timer and flag status -->
-  <div>
-    <span>Time Remaining: {{ formatTime(remainingSeconds) }}</span>
-    <span> | Flag: {{ currentFlag ?? 'none' }}</span>
-    <span> | Status: {{ sessionStatus }}</span>
-  </div>
+    <div class="status-grid">
+      <p class="status-chip"><strong>Time:</strong> {{ formatTime(remainingSeconds) }}</p>
+      <p class="status-chip"><strong>Flag:</strong> {{ currentFlag ?? 'none' }}</p>
+      <p class="status-chip"><strong>Status:</strong> {{ sessionStatus }}</p>
+    </div>
 
-  <!-- Leaderboard table -->
-  <table *ngIf="entries.length > 0">
-    <thead>
-      <tr>
-        <th>Position</th>
-        <th>Car</th>
-        <th>Driver</th>
-        <th>Laps</th>
-        <th>Best Lap</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let entry of sortedEntries; let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ entry.carNumber }}</td>
-        <td>{{ entry.driverName }}</td>
-        <td>{{ entry.completedLaps }}</td>
-        <td>{{ formatLapTime(entry.bestLapTime) }}</td>
-      </tr>
-    </tbody>
-  </table>
+    <table *ngIf="entries.length > 0">
+      <thead>
+        <tr>
+          <th>Position</th>
+          <th>Car</th>
+          <th>Driver</th>
+          <th>Laps</th>
+          <th>Best Lap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of sortedEntries; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ entry.carNumber }}</td>
+          <td>{{ entry.driverName }}</td>
+          <td>{{ entry.completedLaps }}</td>
+          <td>{{ formatLapTime(entry.bestLapTime) }}</td>
+        </tr>
+      </tbody>
+    </table>
 
-  <p *ngIf="entries.length === 0">No active race session.</p>
-</div>
+    <p *ngIf="entries.length === 0" class="muted">No active race session.</p>
+  </article>
+</section>

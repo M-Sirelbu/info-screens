@@ -1,5 +1,6 @@
+<section class="screen-page front-desk-screen">
 <div class="auth-screen" *ngIf="!isAuthenticated">
-  <div class="auth-card">
+  <div class="screen-panel auth-card">
     <div class="auth-logo">
       <h1>Front Desk</h1>
       <p class="auth-subtitle">Reception Interface</p>
@@ -33,7 +34,7 @@
 </div>
 
 
-<div class="dashboard" *ngIf="isAuthenticated">
+<div class="screen-panel dashboard" *ngIf="isAuthenticated">
 
   <!-- Päis -->
   <header class="dashboard-header">
@@ -177,3 +178,4 @@
     </div>
   </div>
 </div>
+</section>

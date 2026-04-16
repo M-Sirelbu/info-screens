@@ -1,0 +1,32 @@
+.lap-tracker {
+	display: grid;
+	gap: 1rem;
+}
+
+.auth-block {
+	max-width: 420px;
+	display: grid;
+	gap: 0.65rem;
+}
+
+.tracker-board {
+	display: grid;
+	gap: 1rem;
+}
+
+.lap-grid {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.lap-btn {
+	min-height: 92px;
+	font-size: 1.25rem;
+}
+
+.error {
+	margin: 0;
+	color: #ff9dac;
+	font-weight: 600;
+}

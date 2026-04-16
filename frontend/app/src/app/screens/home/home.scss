@@ -1,22 +1,10 @@
 .home-screen {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
-  background:
-    radial-gradient(circle at 15% 20%, #1db954 0%, transparent 35%),
-    radial-gradient(circle at 85% 80%, #f7c32e 0%, transparent 32%),
-    linear-gradient(145deg, #10202f 0%, #15283c 45%, #0d1a28 100%);
-  color: #f6f8fb;
+  place-content: center;
 }
 
 .home-card {
   width: min(980px, 100%);
   padding: 2rem;
-  border-radius: 20px;
-  background: rgba(8, 16, 26, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
 }
 
 h1 {
@@ -39,8 +27,8 @@ h1 {
 .screen-group {
   padding: 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(185, 211, 236, 0.18);
+  background: rgba(155, 191, 228, 0.07);
 }
 
 .screen-group header {
@@ -56,7 +44,7 @@ h1 {
 .screen-group p {
   margin: 0.35rem 0 0;
   font-size: 0.92rem;
-  color: #c3d3e3;
+  color: #c9ddf1;
 }
 
 .screen-group.secured {
@@ -87,7 +75,7 @@ h1 {
   color: #0f1f2e;
   background: linear-gradient(135deg, #f7f8fa, #e5ecf3);
   border: 1px solid rgba(16, 32, 48, 0.15);
-  transition: transform 140ms ease, box-shadow 140ms ease, background 160ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 160ms ease, filter 140ms ease;
 }
 
 .screen-btn:hover,
@@ -95,6 +83,7 @@ h1 {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(11, 20, 32, 0.3);
   background: linear-gradient(135deg, #ffffff, #ecf4ff);
+  filter: saturate(1.1);
 }
 
 .secured .screen-btn {

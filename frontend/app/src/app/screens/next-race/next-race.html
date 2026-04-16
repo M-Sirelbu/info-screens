@@ -1,35 +1,44 @@
-<p>next-race works!</p>
+<section class="screen-page">
+  <article class="screen-panel next-race">
+    <div class="header-row">
+      <div>
+        <h1>Next Race</h1>
+        <p class="screen-subtitle">Upcoming session and driver allocation.</p>
+      </div>
+      <button class="btn btn-primary" type="button" (click)="enterFullscreen()">Full Screen</button>
+    </div>
 
-<div class="next-race">
-  <button type="button" (click)="enterFullscreen()">Full Screen</button>
+    <div class="status-grid">
+      <p class="status-chip"><strong>Connection:</strong> {{ connected ? 'Connected' : 'Disconnected' }}</p>
+      <p class="status-chip"><strong>Message:</strong> {{ message || '-' }}</p>
+    </div>
 
-  <h1>Next Race</h1>
-  <p><strong>Connection:</strong> {{ connected ? 'Connected' : 'Disconnected' }}</p>
-  <p><strong>Message:</strong> {{ message }}</p>
+    <ng-container *ngIf="nextSession; else noSession">
+      <div class="status-grid">
+        <p class="status-chip"><strong>Session ID:</strong> {{ nextSession.sessionId }}</p>
+        <p class="status-chip" *ngIf="nextSession.status"><strong>Status:</strong> {{ nextSession.status }}</p>
+      </div>
 
-  <ng-container *ngIf="nextSession; else noSession">
-    <p><strong>Session ID:</strong> {{ nextSession.sessionId }}</p>
-    <p *ngIf="nextSession.status"><strong>Status:</strong> {{ nextSession.status }}</p>
+      <ng-container *ngIf="getDriverCarPairs().length > 0; else noDriversYet">
+        <h2>Drivers and cars</h2>
+        <ul class="driver-list">
+          <li *ngFor="let item of getDriverCarPairs()">
+            {{ item.driver }} - Car {{ item.car }}
+          </li>
+        </ul>
+      </ng-container>
 
-    <ng-container *ngIf="getDriverCarPairs().length > 0; else noDriversYet">
-      <h2>Drivers and cars</h2>
-      <ul>
-        <li *ngFor="let item of getDriverCarPairs()">
-          {{ item.driver }} — Car {{ item.car }}
-        </li>
-      </ul>
+      <ng-template #noDriversYet>
+        <p class="muted">No drivers have been assigned yet.</p>
+      </ng-template>
+
+      <p *ngIf="nextSession.status === 'ended'" class="ended-message">
+        Please proceed to the paddock.
+      </p>
     </ng-container>
 
-    <ng-template #noDriversYet>
-      <p>No drivers have been assigned yet.</p>
+    <ng-template #noSession>
+      <p class="muted">No upcoming session available.</p>
     </ng-template>
-
-    <p *ngIf="nextSession.status === 'ended'">
-      Please proceed to the paddock.
-    </p>
-  </ng-container>
-
-  <ng-template #noSession>
-    <p>No upcoming session available.</p>
-  </ng-template>
-</div>
+  </article>
+</section>

@@ -45,4 +45,10 @@ export class RaceFlags implements OnInit, OnDestroy {
       this.socket.disconnect();
     }
   }
+
+  enterFullscreen(): void {
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.warn('Fullscreen failed:', err);
+    });
+  }
 }
