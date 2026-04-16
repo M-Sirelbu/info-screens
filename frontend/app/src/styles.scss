@@ -1,1 +1,195 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+
+:root {
+	--text-main: #f2f7fc;
+	--text-soft: #bad0e5;
+	--panel-bg: rgba(8, 16, 26, 0.84);
+	--panel-border: rgba(177, 204, 230, 0.2);
+	--accent-blue: #8fe8ff;
+	--accent-gold: #f7c32e;
+	--danger: #ff7a7a;
+	--success: #7de1a7;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	color: var(--text-main);
+	font-family: 'Manrope', 'Segoe UI', sans-serif;
+	background:
+		radial-gradient(circle at 15% 15%, #1db954 0%, transparent 34%),
+		radial-gradient(circle at 78% 18%, #3ca4ff 0%, transparent 35%),
+		radial-gradient(circle at 86% 86%, #f7c32e 0%, transparent 36%),
+		linear-gradient(155deg, #0a1624 0%, #102233 56%, #0d1a28 100%);
+	background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+p {
+	margin-top: 0;
+}
+
+.screen-page {
+	min-height: calc(100vh - 110px);
+	display: grid;
+	align-content: start;
+	gap: 1rem;
+}
+
+.screen-panel {
+	border-radius: 20px;
+	border: 1px solid var(--panel-border);
+	background: var(--panel-bg);
+	box-shadow: 0 20px 45px rgba(0, 0, 0, 0.32);
+	padding: 1.4rem;
+}
+
+.screen-panel h1 {
+	margin-bottom: 0.45rem;
+	font-size: clamp(1.45rem, 2vw, 2.3rem);
+	letter-spacing: 0.02em;
+}
+
+.screen-panel h2 {
+	margin-bottom: 0.5rem;
+	font-size: 1.1rem;
+}
+
+.screen-subtitle {
+	margin: 0;
+	color: var(--text-soft);
+}
+
+.status-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 0.65rem;
+	margin: 1rem 0;
+}
+
+.status-chip {
+	border-radius: 14px;
+	border: 1px solid rgba(155, 190, 223, 0.2);
+	background: rgba(180, 211, 239, 0.1);
+	padding: 0.65rem 0.8rem;
+	font-weight: 600;
+	color: #d7e8f9;
+}
+
+.status-chip strong {
+	color: #ffffff;
+}
+
+.btn {
+	border: 1px solid transparent;
+	border-radius: 12px;
+	padding: 0.58rem 0.95rem;
+	font-weight: 700;
+	font-family: inherit;
+	cursor: pointer;
+	transition: transform 150ms ease, filter 150ms ease;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible:not(:disabled) {
+	transform: translateY(-1px);
+	filter: brightness(1.04);
+}
+
+.btn:disabled {
+	opacity: 0.56;
+	cursor: not-allowed;
+}
+
+.btn-primary {
+	color: #0b1a2a;
+	background: linear-gradient(135deg, #a3ecff, #d4f5ff);
+	border-color: rgba(255, 255, 255, 0.36);
+}
+
+.btn-secondary {
+	color: #0f1e2f;
+	background: linear-gradient(135deg, #f8ecdc, #ffe2b7);
+	border-color: rgba(255, 255, 255, 0.34);
+}
+
+.btn-success {
+	color: #0a2619;
+	background: linear-gradient(135deg, #a4f3c2, #d5ffe4);
+	border-color: rgba(255, 255, 255, 0.34);
+}
+
+.btn-danger {
+	color: #3a0f17;
+	background: linear-gradient(135deg, #ffb4c0, #ffd4dc);
+	border-color: rgba(255, 255, 255, 0.34);
+}
+
+.btn-ghost {
+	color: #dbe9f8;
+	background: rgba(186, 211, 235, 0.12);
+	border-color: rgba(186, 211, 235, 0.26);
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+
+input {
+	border-radius: 10px;
+	border: 1px solid rgba(178, 207, 236, 0.25);
+	background: rgba(8, 15, 24, 0.5);
+	color: #e8f3ff;
+	padding: 0.56rem 0.7rem;
+}
+
+input::placeholder {
+	color: #a6bfda;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	background: rgba(9, 17, 27, 0.44);
+	border-radius: 14px;
+	overflow: hidden;
+}
+
+th,
+td {
+	padding: 0.68rem;
+	text-align: left;
+	border-bottom: 1px solid rgba(157, 190, 223, 0.15);
+}
+
+th {
+	color: #daebff;
+	background: rgba(168, 199, 229, 0.13);
+}
+
+.muted {
+	color: var(--text-soft);
+}
+
+@media (max-width: 720px) {
+	.screen-panel {
+		padding: 1rem;
+	}
+
+	.status-grid {
+		grid-template-columns: 1fr;
+	}
+}

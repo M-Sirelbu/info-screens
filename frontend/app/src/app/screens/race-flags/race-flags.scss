@@ -1,0 +1,49 @@
+.race-flags-screen {
+	display: grid;
+	gap: 1rem;
+}
+
+.header-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.flag-panel {
+	border-radius: 16px;
+	border: 1px solid rgba(182, 212, 240, 0.2);
+	background: rgba(172, 203, 236, 0.08);
+	padding: 1rem;
+}
+
+.flag-value {
+	margin: 0;
+	font-size: clamp(2rem, 6vw, 3.4rem);
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.flag-value[data-flag='green'] {
+	color: #89f2ae;
+}
+
+.flag-value[data-flag='yellow'] {
+	color: #ffe27f;
+}
+
+.flag-value[data-flag='red'] {
+	color: #ff9aa8;
+}
+
+.flag-value[data-flag='finish'] {
+	color: #cde4ff;
+}
+
+@media (max-width: 720px) {
+	.header-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

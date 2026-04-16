@@ -1,12 +1,12 @@
-<main class="home-screen">
-  <section class="home-card">
+<section class="screen-page home-screen">
+  <section class="screen-panel home-card">
     <h1>Beachside Racetrack</h1>
-    <p class="intro">Choose a screen to open.</p>
+    <p class="intro">Choose a screen from the grouped quick launcher below.</p>
 
     <div class="groups">
       <section class="screen-group secured">
         <header>
-          <h2>Employee Screens</h2>
+          <h2>Authenticated Screens</h2>
           <p>Access key required</p>
         </header>
         <nav class="screen-grid" aria-label="Employee screen selection">
@@ -22,12 +22,12 @@
           <p>No access key needed</p>
         </header>
         <nav class="screen-grid" aria-label="Public display selection">
-          <a routerLink="/leader-board" class="screen-btn">Leader Board</a>
           <a routerLink="/next-race" class="screen-btn">Next Race</a>
           <a routerLink="/race-countdown" class="screen-btn">Race Countdown</a>
           <a routerLink="/race-flags" class="screen-btn">Race Flags</a>
+          <a routerLink="/leader-board" class="screen-btn">Leader Board</a>
         </nav>
       </section>
     </div>
   </section>
-</main>
+</section>

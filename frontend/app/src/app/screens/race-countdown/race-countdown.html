@@ -1,11 +1,21 @@
-<div class="countdown-screen">
-  <button class="fullscreen-btn" (click)="enterFullscreen()">Full Screen</button>
+<section class="screen-page countdown-page">
+  <article class="screen-panel countdown-screen">
+    <div class="header-row">
+      <div>
+        <h1>Race Countdown</h1>
+        <p class="screen-subtitle">Live pre-race countdown display.</p>
+      </div>
+      <button class="btn btn-primary" (click)="enterFullscreen()">Full Screen</button>
+    </div>
 
-  <ng-container *ngIf="countdown !== null; else idleState">
-    <h1 class="countdown-value">{{ countdown }}</h1>
-  </ng-container>
+    <div class="countdown-display">
+      <ng-container *ngIf="countdown !== null; else idleState">
+        <h2 class="countdown-value">{{ countdown }}</h2>
+      </ng-container>
 
-  <ng-template #idleState>
-    <p class="idle-message">Waiting for race start...</p>
-  </ng-template>
-</div>
+      <ng-template #idleState>
+        <p class="idle-message">Waiting for race start...</p>
+      </ng-template>
+    </div>
+  </article>
+</section>
