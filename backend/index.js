@@ -148,8 +148,8 @@ io.on("connection", (socket) => {
             return;
         }
 
-        io.timeout(5000).to("race-countdown").emit("startCountDown", {
-            remainingSeconds: repository.currentRace.remainingSeconds
+        io.timeout(5000).to("race-countdown").emit("startCountdown", {
+            duration: repository.currentRace.remainingSeconds
         }, (err, response) => {
             if (err) {
                 repository.startRaceCountdownActive = false;
