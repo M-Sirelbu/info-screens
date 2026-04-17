@@ -1,1 +1,25 @@
-<p>race-flags works!</p>
+<section class="screen-page">
+	<article class="screen-panel race-flags-screen">
+		<div class="header-row">
+			<div>
+				<h1>Race Flags</h1>
+				<p class="screen-subtitle">Live track safety flag status for public display.</p>
+			</div>
+			<button class="btn btn-primary" type="button" (click)="enterFullscreen()">Full Screen</button>
+		</div>
+
+		<div class="status-grid">
+			<p class="status-chip"><strong>Connection:</strong> {{ connected ? 'Connected' : 'Not connected' }}</p>
+			<p class="status-chip"><strong>Message:</strong> {{ message || '-' }}</p>
+		</div>
+
+		<section class="flag-panel">
+			<h2>Current Flag</h2>
+			<p *ngIf="currentFlag; else noFlag" class="flag-value" [attr.data-flag]="currentFlag">{{ currentFlag }}</p>
+
+			<ng-template #noFlag>
+				<p class="muted">No flag selected</p>
+			</ng-template>
+		</section>
+	</article>
+</section>

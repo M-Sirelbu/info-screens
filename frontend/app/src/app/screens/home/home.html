@@ -1,0 +1,33 @@
+<section class="screen-page home-screen">
+  <section class="screen-panel home-card">
+    <h1>Beachside Racetrack</h1>
+    <p class="intro">Choose a screen from the grouped quick launcher below.</p>
+
+    <div class="groups">
+      <section class="screen-group secured">
+        <header>
+          <h2>Authenticated Screens</h2>
+          <p>Access key required</p>
+        </header>
+        <nav class="screen-grid" aria-label="Employee screen selection">
+          <a routerLink="/front-desk" class="screen-btn">Front Desk</a>
+          <a routerLink="/race-control" class="screen-btn">Race Control</a>
+          <a routerLink="/lap-line-tracker" class="screen-btn">Lap-line Tracker</a>
+        </nav>
+      </section>
+
+      <section class="screen-group public">
+        <header>
+          <h2>Public Displays</h2>
+          <p>No access key needed</p>
+        </header>
+        <nav class="screen-grid" aria-label="Public display selection">
+          <a routerLink="/next-race" class="screen-btn">Next Race</a>
+          <a routerLink="/race-countdown" class="screen-btn">Race Countdown</a>
+          <a routerLink="/race-flags" class="screen-btn">Race Flags</a>
+          <a routerLink="/leader-board" class="screen-btn">Leader Board</a>
+        </nav>
+      </section>
+    </div>
+  </section>
+</section>

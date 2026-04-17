@@ -1,0 +1,213 @@
+.front-desk-screen {
+	align-content: center;
+}
+
+.auth-screen {
+	display: grid;
+	place-items: center;
+}
+
+.auth-card {
+	width: min(520px, 100%);
+	display: grid;
+	gap: 1.2rem;
+}
+
+.auth-logo h1 {
+	margin: 0;
+}
+
+.auth-subtitle {
+	margin: 0.35rem 0 0;
+	color: #bfd4e8;
+}
+
+.auth-form {
+	display: grid;
+	gap: 0.65rem;
+}
+
+.field-label {
+	font-weight: 700;
+}
+
+.auth-error {
+	margin: 0;
+	color: #ff9eab;
+	font-weight: 600;
+}
+
+.spinner {
+	display: inline-flex;
+	align-items: center;
+}
+
+.dashboard {
+	display: grid;
+	gap: 1rem;
+}
+
+.dashboard-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.header-title {
+	margin: 0;
+}
+
+.header-sub {
+	margin: 0.35rem 0 0;
+	color: #c6dcf2;
+}
+
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.session-count {
+	border-radius: 999px;
+	border: 1px solid rgba(178, 208, 237, 0.25);
+	background: rgba(175, 206, 236, 0.1);
+	padding: 0.35rem 0.72rem;
+	font-weight: 700;
+	color: #d7e8fa;
+}
+
+.empty-state {
+	border: 1px dashed rgba(182, 211, 240, 0.35);
+	border-radius: 14px;
+	padding: 1rem;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+	gap: 0.7rem;
+}
+
+.empty-state p {
+	margin: 0;
+}
+
+.sessions-list {
+	display: grid;
+	gap: 0.9rem;
+}
+
+.session-card {
+	border-radius: 16px;
+	border: 1px solid rgba(177, 208, 237, 0.2);
+	background: rgba(156, 196, 232, 0.07);
+	padding: 0.95rem;
+}
+
+.session-card.locked {
+	border-color: rgba(247, 195, 46, 0.36);
+	background: rgba(247, 195, 46, 0.09);
+}
+
+.session-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.65rem;
+}
+
+.session-title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.session-number {
+	font-weight: 800;
+}
+
+.lock-badge,
+.driver-count {
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 700;
+}
+
+.lock-badge {
+	color: #241604;
+	background: #f6d37d;
+}
+
+.driver-count {
+	color: #dbebfc;
+	background: rgba(173, 204, 235, 0.2);
+}
+
+.drivers-section {
+	margin-top: 0.8rem;
+	display: grid;
+	gap: 0.7rem;
+}
+
+.drivers-table .car-number {
+	width: 90px;
+}
+
+.car-badge {
+	min-width: 44px;
+	display: inline-flex;
+	justify-content: center;
+	border-radius: 999px;
+	background: rgba(143, 184, 224, 0.25);
+	padding: 0.2rem 0.55rem;
+	font-weight: 700;
+}
+
+.inline-input,
+.driver-input {
+	width: 100%;
+}
+
+.driver-actions,
+.add-driver-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+
+.add-driver-form {
+	display: grid;
+	gap: 0.55rem;
+}
+
+.no-drivers,
+.max-notice {
+	margin: 0;
+	color: #c5dbf1;
+}
+
+.btn-full {
+	width: 100%;
+}
+
+.btn-sm {
+	padding: 0.45rem 0.8rem;
+	font-size: 0.9rem;
+}
+
+.btn-xs {
+	padding: 0.28rem 0.52rem;
+	font-size: 0.8rem;
+}
+
+@media (max-width: 860px) {
+	.dashboard-header,
+	.header-right,
+	.session-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

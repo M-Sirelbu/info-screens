@@ -1,1 +1,47 @@
-<p>lap-line-tracker works!</p>
+<section class="screen-page">
+  <article class="screen-panel lap-tracker">
+    <h1>Lap-line Tracker</h1>
+    <p class="screen-subtitle">Register laps quickly while the race is active or finished.</p>
+
+    <div *ngIf="!isAuthenticated" class="auth-block">
+      <label for="accessKey">Access key</label>
+      <input
+        id="accessKey"
+        type="password"
+        [(ngModel)]="accessKey"
+        [disabled]="isConnecting"
+        (keydown.enter)="connect()"
+        placeholder="Enter lap-line access key"
+      />
+      <button class="btn btn-primary" type="button" (click)="connect()" [disabled]="isConnecting || !accessKey.trim()">
+        {{ isConnecting ? 'Connecting...' : 'Connect' }}
+      </button>
+
+      <p *ngIf="authError" class="error">{{ authError }}</p>
+    </div>
+
+    <div *ngIf="isAuthenticated" class="tracker-board">
+      <div class="status-grid">
+        <p class="status-chip"><strong>Session:</strong> {{ sessionStatus }}</p>
+        <p class="status-chip"><strong>Status:</strong> {{ statusMessage }}</p>
+      </div>
+
+      <div class="lap-grid" aria-label="Lap buttons">
+        <button
+          *ngFor="let carNumber of carNumbers; trackBy: trackByCarNumber"
+          class="btn btn-secondary lap-btn"
+          type="button"
+          (click)="sendLap(carNumber)"
+          [disabled]="!canRecordLaps"
+          [attr.aria-label]="'Record lap for car ' + carNumber"
+        >
+          Car {{ carNumber }}
+        </button>
+      </div>
+
+      <p *ngIf="!canRecordLaps" class="muted">
+        Lap buttons are disabled until race status is active or finished.
+      </p>
+    </div>
+  </article>
+</section>

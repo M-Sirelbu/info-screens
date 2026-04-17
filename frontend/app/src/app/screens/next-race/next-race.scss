@@ -1,0 +1,31 @@
+.next-race {
+  display: grid;
+  gap: 1rem;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.driver-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.ended-message {
+  margin: 0;
+  color: #ffe09a;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

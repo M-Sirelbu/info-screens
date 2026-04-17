@@ -1,1 +1,45 @@
-<p>race-control works!</p>
+<section class="screen-page race-control-screen">
+	<article class="screen-panel">
+		<h1>Race Control</h1>
+		<p class="screen-subtitle">Control race start, flag changes, and session end.</p>
+
+		<div class="status-grid">
+			<p class="status-chip"><strong>Connection:</strong> {{ connected ? 'Connected' : 'Not connected' }}</p>
+			<p class="status-chip"><strong>Session:</strong> {{ sessionStatus }}</p>
+			<p class="status-chip"><strong>Flag:</strong> {{ currentFlag || '-' }}</p>
+			<p class="status-chip"><strong>Message:</strong> {{ message || '-' }}</p>
+		</div>
+
+		<section class="control-group">
+			<h2>Race</h2>
+			<button class="btn btn-primary" type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
+				Start Race
+			</button>
+		</section>
+
+		<section class="control-group">
+			<h2>Flags</h2>
+			<div class="button-row">
+				<button class="btn btn-success" type="button" (click)="changeFlag('green')" [disabled]="!canUseFlags()">
+					Safe (Green)
+				</button>
+				<button class="btn btn-secondary" type="button" (click)="changeFlag('yellow')" [disabled]="!canUseFlags()">
+					Hazard (Yellow)
+				</button>
+				<button class="btn btn-danger" type="button" (click)="changeFlag('red')" [disabled]="!canUseFlags()">
+					Danger (Red)
+				</button>
+				<button class="btn btn-ghost" type="button" (click)="changeFlag('finish')" [disabled]="!canUseFlags()">
+					Finish (Chequered)
+				</button>
+			</div>
+		</section>
+
+		<section class="control-group">
+			<h2>Session</h2>
+			<button class="btn btn-danger" type="button" (click)="endSession()" [disabled]="!canEndSession()">
+				End Session
+			</button>
+		</section>
+	</article>
+</section>
