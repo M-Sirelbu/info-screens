@@ -5,6 +5,12 @@ import { io, Socket } from 'socket.io-client';
 
 type SessionStatus = 'notStarted' | 'active' | 'finished';
 
+type SessionUpdatePayload = {
+  sessionId: number;
+  driverNames: string[];
+  carNumbers: number[];
+};
+
 @Component({
   selector: 'app-lap-line-tracker',
   standalone: true,
@@ -15,7 +21,7 @@ type SessionStatus = 'notStarted' | 'active' | 'finished';
 export class LapLineTracker implements OnInit, OnDestroy {
   private socket!: Socket;
 
-  readonly carNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
+  carNumbers: number[] = [];
 
   accessKey = '';
   isAuthenticated = false;
@@ -72,6 +78,14 @@ export class LapLineTracker implements OnInit, OnDestroy {
       }
 
       this.statusMessage = 'Waiting for race start.';
+    });
+
+    this.socket.on('sessionUpdate', (args: SessionUpdatePayload) => {
+      this.applyCarNumbers(args.carNumbers);
+    });
+
+    this.socket.on('lapTimes', (args: { carNumbers: number[] }) => {
+      this.applyCarNumbers(args.carNumbers);
     });
   }
 
@@ -136,5 +150,16 @@ export class LapLineTracker implements OnInit, OnDestroy {
         this.socket.disconnect();
       }
     );
+  }
+
+  private applyCarNumbers(carNumbers: number[]): void {
+    if (!Array.isArray(carNumbers)) {
+      return;
+    }
+
+    const normalized = carNumbers
+      .filter((value, index, source) => Number.isInteger(value) && value > 0 && source.indexOf(value) === index);
+
+    this.carNumbers = normalized;
   }
 }

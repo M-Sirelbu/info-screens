@@ -12,6 +12,12 @@ interface LeaderboardEntry {
   bestLapTime: number; // milliseconds, 0 = no lap yet
 }
 
+type SessionUpdatePayload = {
+  sessionId: number;
+  driverNames: string[];
+  carNumbers: number[];
+};
+
 @Component({
   selector: 'app-leader-board',
   standalone: true,
@@ -51,12 +57,17 @@ export class LeaderBoard implements OnInit, OnDestroy {
     });
 
     this.socket.on('sessionUpdate', (args: { sessionId: number; driverNames: string[]; carNumbers: number[] }) => {
-      this.entries = args.carNumbers.map((carNumber, i) => ({
-        carNumber,
-        driverName: args.driverNames[i],
-        completedLaps: 0,
-        bestLapTime: 0,
-      }));
+      this.syncSessionEntries(args);
+    });
+
+    this.socket.on('nextSessionUpdate', (args: unknown) => {
+      if (!this.isSessionUpdatePayload(args)) {
+        return;
+      }
+
+      if (this.sessionStatus === 'notStarted') {
+        this.syncSessionEntries(args);
+      }
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
@@ -69,11 +80,20 @@ export class LeaderBoard implements OnInit, OnDestroy {
 
     this.socket.on('lapTimes', (args: { carNumbers: number[]; completedLaps: number[]; bestLapTime: number[] }) => {
       args.carNumbers.forEach((carNumber, i) => {
-        const entry = this.entries.find(e => e.carNumber === carNumber);
-        if (entry) {
-          entry.completedLaps = args.completedLaps[i];
-          entry.bestLapTime = args.bestLapTime[i];
+        let entry = this.entries.find(e => e.carNumber === carNumber);
+
+        if (!entry) {
+          entry = {
+            carNumber,
+            driverName: `Car ${carNumber}`,
+            completedLaps: 0,
+            bestLapTime: 0,
+          };
+          this.entries.push(entry);
         }
+
+        entry.completedLaps = args.completedLaps[i] ?? entry.completedLaps;
+        entry.bestLapTime = args.bestLapTime[i] ?? entry.bestLapTime;
       });
     });
 
@@ -100,6 +120,28 @@ export class LeaderBoard implements OnInit, OnDestroy {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  private syncSessionEntries(args: SessionUpdatePayload): void {
+    this.entries = args.carNumbers.map((carNumber, i) => {
+      const previous = this.entries.find((entry) => entry.carNumber === carNumber);
+      return {
+        carNumber,
+        driverName: args.driverNames[i] ?? `Car ${carNumber}`,
+        completedLaps: previous?.completedLaps ?? 0,
+        bestLapTime: previous?.bestLapTime ?? 0,
+      };
+    });
+  }
+
+  private isSessionUpdatePayload(data: unknown): data is SessionUpdatePayload {
+    return !!data
+      && typeof data === 'object'
+      && 'sessionId' in data
+      && 'driverNames' in data
+      && 'carNumbers' in data
+      && Array.isArray((data as SessionUpdatePayload).driverNames)
+      && Array.isArray((data as SessionUpdatePayload).carNumbers);
   }
 
   enterFullscreen(): void {

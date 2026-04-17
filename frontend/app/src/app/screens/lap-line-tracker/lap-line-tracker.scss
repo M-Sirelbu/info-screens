@@ -1,12 +1,43 @@
+.lap-line-tracker-screen {
+	align-content: center;
+}
+
+.auth-screen {
+	display: grid;
+	place-items: center;
+}
+
+.auth-card {
+	width: min(520px, 100%);
+	display: grid;
+	gap: 1.2rem;
+}
+
+.auth-logo h1 {
+	margin: 0;
+}
+
+.auth-subtitle {
+	margin: 0.35rem 0 0;
+	color: #bfd4e8;
+}
+
 .lap-tracker {
 	display: grid;
 	gap: 1rem;
 }
 
 .auth-block {
-	max-width: 420px;
 	display: grid;
 	gap: 0.65rem;
+}
+
+.field-label {
+	font-weight: 700;
+}
+
+.btn-full {
+	width: 100%;
 }
 
 .tracker-board {
@@ -25,8 +56,8 @@
 	font-size: 1.25rem;
 }
 
-.error {
+.auth-error {
 	margin: 0;
-	color: #ff9dac;
+	color: #ff9eab;
 	font-weight: 600;
 }

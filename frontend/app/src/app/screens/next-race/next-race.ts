@@ -23,6 +23,8 @@ export class NextRace implements OnInit, OnDestroy {
   connected = false;
   message = '';
   nextSession: NextSessionPayload | null = null;
+  showPaddockPrompt = false;
+  private hasRaceProgressed = false;
 
   ngOnInit(): void {
     this.socket = io();
@@ -44,11 +46,35 @@ export class NextRace implements OnInit, OnDestroy {
       this.connected = false;
       this.message = 'Connection lost';
     });
+
+    this.socket.on('sessionStatus', (args: { status: 'notStarted' | 'active' | 'finished' }) => {
+      if (args.status === 'active' || args.status === 'finished') {
+        this.hasRaceProgressed = true;
+      }
+
+      if (args.status === 'active') {
+        this.showPaddockPrompt = false;
+        return;
+      }
+
+      if (args.status === 'notStarted' && this.hasRaceProgressed) {
+        this.showPaddockPrompt = true;
+      }
+    });
+
+    this.socket.on('sessionEnded', () => {
+      this.showPaddockPrompt = true;
+    });
   
     this.socket.on('nextSessionUpdate', (data: unknown) => {
       if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
         this.message = '';
+
+        if (data.status === 'ended') {
+          this.showPaddockPrompt = true;
+        }
+
         return;
       }
 

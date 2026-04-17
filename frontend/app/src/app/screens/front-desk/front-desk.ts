@@ -81,12 +81,12 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    this.socket.on('sessionsUpdated', (data: { sessions: Session[] }) => {
-      const activeSessionIds = new Set(data.sessions.map((session) => session.sessionId));
+    this.socket.on('sessionsUpdated', (sessions: Session[]) => {
+      const activeSessionIds = new Set(sessions.map((session) => session.sessionId));
       this.pruneLockedSessionIds(activeSessionIds);
       this.pruneNewDriverNames(activeSessionIds);
       this.clearStaleUiState(activeSessionIds);
-      this.sessions = data.sessions.map(session => ({
+      this.sessions = sessions.map(session => ({
         ...session,
         locked: session.locked === true || this.lockedSessionIds.has(session.sessionId)
       }));
@@ -198,6 +198,40 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
     delete this.newDriverNames[sessionId];
   }
 
+  changeDriverCar(sessionId: number, driverName: string, carNumber: number): void {
+    if (!Number.isInteger(carNumber) || carNumber < 1 || carNumber > 8) {
+      return;
+    }
+
+    const session = this.sessions.find((item) => item.sessionId === sessionId);
+    if (!session) {
+      return;
+    }
+
+    const currentIndex = session.driverNames.findIndex((name) => name === driverName);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const currentCar = session.carNumbers[currentIndex];
+    if (currentCar === carNumber) {
+      return;
+    }
+
+    const isTaken = session.carNumbers.some((assignedCar, index) => assignedCar === carNumber && index !== currentIndex);
+    if (isTaken) {
+      return;
+    }
+
+    session.carNumbers[currentIndex] = carNumber;
+
+    this.socket.emit('driverCarEdited', {
+      sessionId,
+      driverName,
+      carNumber
+    });
+  }
+
   startEdit(sessionId: number, driverName: string): void {
     this.editingDriver = { sessionId, driverName };
     this.editingNewName = driverName;
@@ -252,6 +286,19 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
 
   canAddDriver(session: Session): boolean {
     return session.driverNames.length < 8 && !this.isLocked(session);
+  }
+
+  getAvailableCars(session: Session, currentCar: number): number[] {
+    const usedCars = new Set(session.carNumbers.filter((carNumber) => carNumber !== currentCar));
+    const options: number[] = [];
+
+    for (let car = 1; car <= 8; car++) {
+      if (!usedCars.has(car)) {
+        options.push(car);
+      }
+    }
+
+    return options;
   }
 
   onKeyDown(event: KeyboardEvent, action: 'addDriver' | 'confirmEdit', sessionId?: number): void {
