@@ -10,6 +10,7 @@ class Repository {
         status: "notStarted",
         sessionId: null,
         carNumbers: null,
+        driverNames: null,
         completedLaps: null,
         bestLapTime: null,
         lastLapStartTimes: null,
@@ -30,6 +31,7 @@ class Repository {
             if (session.sessionId === sessionId) {
                 this.currentRace.sessionId = sessionId;
                 this.currentRace.carNumbers = session.carNumbers;
+                this.currentRace.driverNames = session.driverNames;
                 this.currentRace.completedLaps = [];
                 this.currentRace.bestLapTime = [];
                 this.currentRace.lastLapStartTimes = [];
@@ -74,7 +76,7 @@ class Repository {
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
         const raceStartTimestamp = Date.now();
-        for (let i = 0; i < this.currentRace.lastLapStartTime.length; i++) {
+        for (let i = 0; i < this.currentRace.lastLapStartTimes.length; i++) {
             this.currentRace.lastLapStartTimes[i] = raceStartTimestamp;
         }
         return {
@@ -161,21 +163,19 @@ class Repository {
                         if (this.sessions[i].driverNames[j] === driverName) {
                             return;
                         }
-                        else {
-                            for (let carNumber = 1; carNumber <= 8; carNumber++) {
-                                let numberTaken = false;
-                                for (const existingCarNumber of this.sessions[i].carNumbers) {
-                                    if (existingCarNumber === carNumber) {
-                                        numberTaken = true;
-                                        break;
-                                    }
-                                }
-                                if (!numberTaken) {
-                                    this.sessions[i].driverNames.push(driverName);
-                                    this.sessions[i].carNumbers.push(carNumber);
-                                    return;
-                                }
+                    }
+                    for (let carNumber = 1; carNumber <= 8; carNumber++) {
+                        let numberTaken = false;
+                        for (const existingCarNumber of this.sessions[i].carNumbers) {
+                            if (existingCarNumber === carNumber) {
+                                numberTaken = true;
+                                break;
                             }
+                        }
+                        if (!numberTaken) {
+                            this.sessions[i].driverNames.push(driverName);
+                            this.sessions[i].carNumbers.push(carNumber);
+                            return;
                         }
                     }
                 }
@@ -220,7 +220,9 @@ class Repository {
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
                 this.currentRace.completedLaps[i]++;
-                const lapTime = (Date.now() - this.currentRace.lastLapStartTimes[i]) / 1000;
+                const lapTimeStamp = Date.now();
+                const lapTime = (lapTimeStamp - this.currentRace.lastLapStartTimes[i]) / 1000;
+                this.currentRace.lastLapStartTimes[i] = lapTimeStamp;
                 if (this.currentRace.bestLapTime[i] === 0) {
                     this.currentRace.bestLapTime[i] = lapTime;
                 }

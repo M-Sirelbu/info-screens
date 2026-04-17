@@ -17,7 +17,7 @@ module.exports = function onConnection (socket, repository, room) {
             }
             break;
         case "next-race":
-            if (this.repository.sessions.length >= 2) {
+            if (repository.sessions.length >= 2) {
                 socket.emit("nextSessionUpdate", repository.getSession(repository.sessions[1].sessionId));
             }
             break;

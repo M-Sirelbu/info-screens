@@ -12,7 +12,7 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "../frontend/app/dist/app/browser")));
 
-app.get('/*a', (req, res) => {
+app.get(["/leader-board", "/next-race", "/race-countdown", "/race-flags", "/front-desk", "/race-control", "/lap-line-tracker"], (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/app/dist/app/browser/index.html'));
 });
 
@@ -76,6 +76,7 @@ io.on('connection', (socket) => {
     socket.on("raceFlag", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Race not Active" });
+            return;
         }
         let status = repository.setFlag(args.flag);
         if (status === "Success") {
@@ -112,6 +113,7 @@ io.on('connection', (socket) => {
             if (err) {
                 repository.startRaceCountdownActive = false;
                 callback({ status: "Invalid Session Status" });
+                return;
             }
             callback({ status: "Success" })
             setTimeout(() => {
@@ -146,7 +148,7 @@ io.on('connection', (socket) => {
                         repository.currentRace.remainingSeconds--;
                     }
                 }, 1000);
-                if (this.repository.sessions.length >= 2) {
+                if (repository.sessions.length >= 2) {
                     io.to("next-race").emit("nextSessionUpdate", repository.getSession(repository.sessions[1].sessionId));
                 }
             }, repository.defaultCountdownDuration * 1000)
@@ -156,7 +158,7 @@ io.on('connection', (socket) => {
         if (!socket.rooms.has("race-control")) {
             return;
         }
-        if (this.repository.sessions.length < 2) {
+        if (repository.sessions.length < 2) {
             repository.addSession([], []);
         }
         repository.loadSession(repository.sessions[1].sessionId);
@@ -169,6 +171,8 @@ io.on('connection', (socket) => {
         .to("lap-line-tracker")
         .to("leader-board")
         .emit("sessionStatus", { status: repository.currentRace.status });
+
+        io.to("front-desk").emit("sessionsUpdated", repository.sessions);
 
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
     });
