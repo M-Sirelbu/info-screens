@@ -12,12 +12,17 @@ class Repository {
         carNumbers: null,
         completedLaps: null,
         bestLapTime: null,
+        lastLapStartTimes: null,
         flag: "red",
         remainingSeconds: null
     };
     defaultRaceDuration = null;
-    constructor(defaultRaceDuration) {
+    defaultCountdownDuration = null;
+    startRaceCountdownActive = false;
+    lastSessionId = 0;
+    constructor(defaultRaceDuration, defaultCountdownDuration) {
         this.defaultRaceDuration = defaultRaceDuration;
+        this.defaultCountdownDuration = defaultCountdownDuration;
     }
     loadSession(sessionId) {
         const oldSessionId = this.currentRace.sessionId;
@@ -27,12 +32,14 @@ class Repository {
                 this.currentRace.carNumbers = session.carNumbers;
                 this.currentRace.completedLaps = [];
                 this.currentRace.bestLapTime = [];
+                this.currentRace.lastLapStartTimes = [];
                 this.currentRace.remainingSeconds = this.defaultRaceDuration;
                 this.currentRace.status = "notStarted";
                 this.currentRace.flag = "red";
                 for (let i = 0; i < session.carNumbers.length; i++) {
                     this.currentRace.completedLaps.push(0);
                     this.currentRace.bestLapTime.push(0);
+                    this.currentRace.lastLapStartTimes.push(0);
                 }
                 if (oldSessionId !== null) {
                     for (let i = 0; i < this.sessions.length; i++) {
@@ -48,6 +55,14 @@ class Repository {
         return "Session not found";
     }
 
+    getSession(sessionId) {
+        for (const session of this.sessions) {
+            if (session.sessionId === sessionId) {
+                return session;
+            }
+        }
+    }
+
     startRace() {
         if (this.currentRace.sessionId === null) {
             return {
@@ -58,7 +73,10 @@ class Repository {
         this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
-
+        const raceStartTimestamp = Date.now();
+        for (let i = 0; i < this.currentRace.lastLapStartTime.length; i++) {
+            this.currentRace.lastLapStartTimes[i] = raceStartTimestamp;
+        }
         return {
             status: "Success",
             race: this.currentRace
@@ -71,22 +89,20 @@ class Repository {
         if (!allowedFlags.includes(flag)) {
             return "Invalid flag";
         }
-
         if (this.currentRace.status !== "active") {
             return "Race not Active";
-        if (this.currentRace.status !== "running") {
-            return "Race not Active";
         }
-
         if (this.currentRace.flag === flag) {
             return "Flag Not Changed";
         }
 
         this.currentRace.flag = flag;
 
-        if (flag === "finish") {
-            this.currentRace.status = "finished";
-        }
+        return "Success";
+    }
+    endRace() {
+        this.currentRace.status = "finished";
+    }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
             return "Invalid Session Status";
@@ -94,14 +110,129 @@ class Repository {
         if (this.currentRace.status !== "notStarted") {
             return "Invalid Session Status";
         }
-        this.currentRace.remainingSeconds = this.defaultRaceDuration;
+        if (this.startRaceCountdownActive) {
+            return "Countdown in Progress"
+        }
+        this.startRaceCountdownActive = true;
 
         return "Success";
     }
 
+    addSession(driverNames, carNumbers) {
+        this.sessions.push({
+            sessionId: this.lastSessionId + 1,
+            driverNames: driverNames,
+            carNumbers: carNumbers
+        });
+        this.lastSessionId++;
+    }
+
+    updateSession(sessionId, driverNames, carNumbers) {
+        if (sessionId === this.currentRace.sessionId) {
+            return;
+        }
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                this.sessions[i].driverNames = driverNames;
+                this.sessions[i].carNumbers = carNumbers;
+            }
+        }
+    }
+
+    deleteSession(sessionId) {
+        if (sessionId === this.currentRace.sessionId) {
+            return;
+        }
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                this.sessions.splice(i, 1);
+            }
+        }
+    }
+
+    addDriver(sessionId, driverName) {
+        if (sessionId === this.currentRace.sessionId) {
+            return;
+        }
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                if (!(this.sessions[i].driverNames.length >= 8)) {
+                    for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
+                        if (this.sessions[i].driverNames[j] === driverName) {
+                            return;
+                        }
+                        else {
+                            for (let carNumber = 1; carNumber <= 8; carNumber++) {
+                                let numberTaken = false;
+                                for (const existingCarNumber of this.sessions[i].carNumbers) {
+                                    if (existingCarNumber === carNumber) {
+                                        numberTaken = true;
+                                        break;
+                                    }
+                                }
+                                if (!numberTaken) {
+                                    this.sessions[i].driverNames.push(driverName);
+                                    this.sessions[i].carNumbers.push(carNumber);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    updateDriver(sessionId, driverName, newName) {
+        if (sessionId === this.currentRace.sessionId) {
+            return;
+        }
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
+                    if (this.sessions[i].driverNames[j] === driverName) {
+                        this.sessions[i].driverNames[j] = newName;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    deleteDriver(sessionId, driverName) {
+        if (sessionId === this.currentRace.sessionId) {
+            return;
+        }
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
+                    if (this.sessions[i].driverNames[j] === driverName) {
+                        this.sessions[i].driverNames.splice(j, 1);
+                        this.sessions[i].carNumbers.splice(j, 1);
+                    }
+                }
+            }
+        }
+
+    }
+
+    addLap(carNumber) {
+        for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
+            if (this.currentRace.carNumbers[i] === carNumber) {
+                this.currentRace.completedLaps[i]++;
+                const lapTime = (Date.now() - this.currentRace.lastLapStartTimes[i]) / 1000;
+                if (this.currentRace.bestLapTime[i] === 0) {
+                    this.currentRace.bestLapTime[i] = lapTime;
+                }
+                else if (this.currentRace.bestLapTime[i] > lapTime) {
+                    this.currentRace.bestLapTime[i] = lapTime;
+                }
+            }
+        } 
+    }
+
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
- }
+}
 
 module.exports = Repository;
 
-    // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
