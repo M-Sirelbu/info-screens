@@ -1,0 +1,25 @@
+{
+  "name": "info-screens",
+  "version": "1.0.0",
+  "description": "Real-time race operations and public information system for Beachside Racetrack.",
+  "homepage": "https://github.com/M-Sirelbu/info-screens#readme",
+  "bugs": {
+    "url": "https://github.com/M-Sirelbu/info-screens/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M-Sirelbu/info-screens.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "export NODE_ENV=production; cd frontend/app; ng build; cd ../../backend; node index.js",
+    "dev": "export NODE_ENV=development; cd frontend/app; ng build; cd ../../backend; node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
