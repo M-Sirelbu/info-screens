@@ -1,6 +1,7 @@
 const express = require('express')
 const http = require('http')
 const path = require('path')
+const ngrok = require('@ngrok/ngrok');
 const { Server } = require('socket.io');
 const { env } = require('node:process');
 const Repository = require('./repository');
@@ -12,7 +13,7 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "../frontend/app/dist/app/browser")));
 
-app.get(["/leader-board", "/next-race", "/race-countdown", "/race-flags", "/front-desk", "/race-control", "/lap-line-tracker"], (req, res) => {
+app.get(["/home", "/leader-board", "/next-race", "/race-countdown", "/race-flags", "/front-desk", "/race-control", "/lap-line-tracker"], (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/app/dist/app/browser/index.html'));
 });
 
@@ -55,6 +56,13 @@ const repository = new Repository(raceDuration, 10);
 
 let timer = undefined;
 
+if (!("NGROK_AUTHTOKEN" in env)) {
+    console.error("NGROK_AUTHTOKEN environment variable not set. Please set it to your ngrok authtoken or to \"none\" to run locally.");
+}
+if (env.NGROK_AUTHTOKEN !== "none") {
+    ngrok.connect({ addr: 8000, authtoken_from_env: true })
+    	.then(listener => console.log(`Ingress established at: ${listener.url()}`));
+}
 function sessionsUpdated() {
     io.to("front-desk").emit("sessionsUpdated", repository.sessions);
 }
@@ -282,4 +290,13 @@ io.on("connection", (socket) => {
 
 server.listen(8000, () => {
     console.log("Server running on port 8000")
+});
+
+process.on('SIGINT', () => {
+    console.log("Shutting down server...");
+    server.close(() => {
+        ngrok.kill();
+        console.log("Server closed.");
+        process.exit(0);
+    });
 });
