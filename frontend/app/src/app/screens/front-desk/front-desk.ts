@@ -81,12 +81,12 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    this.socket.on('sessionsUpdated', (data: { sessions: Session[] }) => {
-      const activeSessionIds = new Set(data.sessions.map((session) => session.sessionId));
+    this.socket.on('sessionsUpdated', (sessions: Session[]) => {
+      const activeSessionIds = new Set(sessions.map((session) => session.sessionId));
       this.pruneLockedSessionIds(activeSessionIds);
       this.pruneNewDriverNames(activeSessionIds);
       this.clearStaleUiState(activeSessionIds);
-      this.sessions = data.sessions.map(session => ({
+      this.sessions = sessions.map(session => ({
         ...session,
         locked: session.locked === true || this.lockedSessionIds.has(session.sessionId)
       }));
