@@ -38,6 +38,7 @@ class Repository {
                 this.currentRace.remainingSeconds = this.defaultRaceDuration;
                 this.currentRace.status = "notStarted";
                 this.currentRace.flag = "red";
+                this.countdownInProgress = false;
                 for (let i = 0; i < session.carNumbers.length; i++) {
                     this.currentRace.completedLaps.push(0);
                     this.currentRace.bestLapTime.push(0);
@@ -82,6 +83,77 @@ class Repository {
         return {
             status: "Success",
             race: this.currentRace
+        };
+    }
+
+    finishRace() {
+        if (this.currentRace.sessionId === null) {
+            return {
+                status: "Error",
+                message: "No session loaded"
+            };
+        }
+
+        if (this.currentRace.status !== "active") {
+            return {
+                status: "Error",
+                message: "Race not running"
+            };
+        }
+
+        this.currentRace.status = "finished";
+        this.currentRace.flag = "finish";
+        this.countdownInProgress = false;
+
+        return {
+            status: "Success",
+            race: this.currentRace
+        };
+    }
+
+    endSession() {
+        if (this.currentRace.sessionId === null) {
+            return;
+        }
+
+        if (this.currentRace.status !== "finished") {
+            return;
+        }
+
+        this.currentRace = {
+           status: "notStarted",
+           sessionId: null,
+           carNumbers: null,
+           completedLaps: null,
+           bestLapTime: null,
+           flag: "red",
+           remainingSeconds: null
+       };
+       this.countdownInProgress = false;
+
+       return {
+           status: "Success",
+           race: this.currentRace
+       };
+    }
+
+    getNextSession() {
+        if (this.sessions.length === 0) {
+            return {
+                status: "Error",
+                message: "No upcoming sessions"
+            };
+        }
+
+        const nextSession = this.sessions[0];
+
+        return {
+            status: "Success",
+            session: {
+                sessionId: nextSession.sessionId,
+                driverNames: nextSession.driverNames,
+                carNumbers: nextSession.carNumbers
+            }
         };
     }
 
