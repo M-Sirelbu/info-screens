@@ -95,7 +95,18 @@
           <tbody>
             <tr *ngFor="let driver of getDrivers(session)">
               <td class="car-number">
-                <span class="car-badge">{{ driver.carNumber }}</span>
+                <span class="car-badge" *ngIf="isLocked(session)">{{ driver.carNumber }}</span>
+                <select
+                  *ngIf="!isLocked(session)"
+                  class="car-select"
+                  [ngModel]="driver.carNumber"
+                  (ngModelChange)="changeDriverCar(session.sessionId, driver.driverName, $event)"
+                  [attr.aria-label]="'Assign car for ' + driver.driverName"
+                >
+                  <option *ngFor="let car of getAvailableCars(session, driver.carNumber)" [ngValue]="car">
+                    {{ car }}
+                  </option>
+                </select>
               </td>
 
               <td *ngIf="isEditing(session.sessionId, driver.driverName)">

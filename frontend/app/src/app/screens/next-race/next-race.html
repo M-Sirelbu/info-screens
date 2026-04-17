@@ -32,7 +32,7 @@
         <p class="muted">No drivers have been assigned yet.</p>
       </ng-template>
 
-      <p *ngIf="nextSession.status === 'ended'" class="ended-message">
+      <p *ngIf="showPaddockPrompt" class="ended-message">
         Please proceed to the paddock.
       </p>
     </ng-container>

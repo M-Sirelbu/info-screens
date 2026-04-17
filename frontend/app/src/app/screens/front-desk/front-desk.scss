@@ -166,6 +166,16 @@
 	font-weight: 700;
 }
 
+.car-select {
+	width: 100%;
+	min-width: 70px;
+	border-radius: 10px;
+	border: 1px solid rgba(178, 207, 236, 0.25);
+	background: rgba(8, 15, 24, 0.5);
+	color: #e8f3ff;
+	padding: 0.35rem 0.45rem;
+}
+
 .inline-input,
 .driver-input {
 	width: 100%;

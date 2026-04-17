@@ -1,5 +1,31 @@
 <section class="screen-page race-control-screen">
-	<article class="screen-panel">
+	<div class="auth-screen" *ngIf="!connected">
+		<article class="screen-panel auth-card">
+			<div class="auth-logo">
+				<h1>Race Control</h1>
+				<p class="screen-subtitle">Safety official access required.</p>
+			</div>
+
+			<div class="auth-block">
+				<label for="raceControlAccessKey">Access key</label>
+				<input
+					id="raceControlAccessKey"
+					type="password"
+					[(ngModel)]="accessKey"
+					[disabled]="isConnecting"
+					(keydown.enter)="connect()"
+					placeholder="Enter safety access key"
+				/>
+				<button class="btn btn-primary btn-full" type="button" (click)="connect()" [disabled]="isConnecting || !accessKey.trim()">
+					{{ isConnecting ? 'Connecting...' : 'Connect' }}
+				</button>
+
+				<p *ngIf="authError" class="error">{{ authError }}</p>
+			</div>
+		</article>
+	</div>
+
+	<article class="screen-panel" *ngIf="connected">
 		<h1>Race Control</h1>
 		<p class="screen-subtitle">Control race start, flag changes, and session end.</p>
 
@@ -10,14 +36,14 @@
 			<p class="status-chip"><strong>Message:</strong> {{ message || '-' }}</p>
 		</div>
 
-		<section class="control-group">
+		<section class="control-group" *ngIf="showRaceControls()">
 			<h2>Race</h2>
 			<button class="btn btn-primary" type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
 				Start Race
 			</button>
 		</section>
 
-		<section class="control-group">
+		<section class="control-group" *ngIf="showRaceControls()">
 			<h2>Flags</h2>
 			<div class="button-row">
 				<button class="btn btn-success" type="button" (click)="changeFlag('green')" [disabled]="!canUseFlags()">
@@ -35,11 +61,14 @@
 			</div>
 		</section>
 
-		<section class="control-group">
+		<section class="control-group" *ngIf="showEndSessionButton()">
 			<h2>Session</h2>
+			<p class="session-ready">Race is in Finish mode. End the session when all cars are in pit lane.</p>
 			<button class="btn btn-danger" type="button" (click)="endSession()" [disabled]="!canEndSession()">
 				End Session
 			</button>
 		</section>
+
+		<p class="muted" *ngIf="nextSessionMessage">{{ nextSessionMessage }}</p>
 	</article>
 </section>
