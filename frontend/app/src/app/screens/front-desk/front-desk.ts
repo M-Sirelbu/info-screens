@@ -39,6 +39,7 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   newDriverNames: Record<number, string> = {};
   editingDriver: { sessionId: number; driverName: string } | null = null;
   editingNewName: string = '';
+  readonly carOptions: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
   ngOnInit(): void {
     this.initSocket();
@@ -286,6 +287,14 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
 
   canAddDriver(session: Session): boolean {
     return session.driverNames.length < 8 && !this.isLocked(session);
+  }
+
+  trackBySessionId(_index: number, session: Session): number {
+    return session.sessionId;
+  }
+
+  trackByDriverName(_index: number, driverName: string): string {
+    return driverName;
   }
 
   getAvailableCars(session: Session, currentCar: number): number[] {

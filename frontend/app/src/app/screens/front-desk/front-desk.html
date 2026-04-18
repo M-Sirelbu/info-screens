@@ -62,7 +62,7 @@
 
     <div
       class="session-card"
-      *ngFor="let session of sessions"
+      *ngFor="let session of sessions; trackBy: trackBySessionId"
       [class.locked]="isLocked(session)"
     >
       <div class="session-header">
@@ -93,23 +93,27 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let driver of getDrivers(session)">
+            <tr *ngFor="let driverName of session.driverNames; let i = index; trackBy: trackByDriverName">
               <td class="car-number">
-                <span class="car-badge" *ngIf="isLocked(session)">{{ driver.carNumber }}</span>
+                <span class="car-badge" *ngIf="isLocked(session)">{{ session.carNumbers[i] }}</span>
                 <select
                   *ngIf="!isLocked(session)"
                   class="car-select"
-                  [ngModel]="driver.carNumber"
-                  (ngModelChange)="changeDriverCar(session.sessionId, driver.driverName, $event)"
-                  [attr.aria-label]="'Assign car for ' + driver.driverName"
+                  [ngModel]="session.carNumbers[i]"
+                  (ngModelChange)="changeDriverCar(session.sessionId, driverName, $event)"
+                  [attr.aria-label]="'Assign car for ' + driverName"
                 >
-                  <option *ngFor="let car of getAvailableCars(session, driver.carNumber)" [ngValue]="car">
+                  <option
+                    *ngFor="let car of carOptions"
+                    [ngValue]="car"
+                    [disabled]="session.carNumbers.includes(car) && car !== session.carNumbers[i]"
+                  >
                     {{ car }}
                   </option>
                 </select>
               </td>
 
-              <td *ngIf="isEditing(session.sessionId, driver.driverName)">
+              <td *ngIf="isEditing(session.sessionId, driverName)">
                 <input
                   class="inline-input"
                   type="text"
@@ -119,25 +123,25 @@
                 />
               </td>
 
-              <td *ngIf="!isEditing(session.sessionId, driver.driverName)">
-                {{ driver.driverName }}
+              <td *ngIf="!isEditing(session.sessionId, driverName)">
+                {{ driverName }}
               </td>
 
               <td *ngIf="!isLocked(session)" class="driver-actions">
-                <ng-container *ngIf="isEditing(session.sessionId, driver.driverName)">
+                <ng-container *ngIf="isEditing(session.sessionId, driverName)">
                   <button class="btn btn-success btn-xs" (click)="confirmEdit()" title="Confirm">✓</button>
                   <button class="btn btn-ghost btn-xs" (click)="cancelEdit()" title="Cancel">✕</button>
                 </ng-container>
 
-                <ng-container *ngIf="!isEditing(session.sessionId, driver.driverName)">
+                <ng-container *ngIf="!isEditing(session.sessionId, driverName)">
                   <button
                     class="btn btn-ghost btn-xs"
-                    (click)="startEdit(session.sessionId, driver.driverName)"
+                    (click)="startEdit(session.sessionId, driverName)"
                     title="Edit name"
-                  >✏</button>
+                  >Edit</button>
                   <button
                     class="btn btn-danger btn-xs"
-                    (click)="removeDriver(session.sessionId, driver.driverName)"
+                    (click)="removeDriver(session.sessionId, driverName)"
                     title="Remove driver"
                   >Delete</button>
                 </ng-container>

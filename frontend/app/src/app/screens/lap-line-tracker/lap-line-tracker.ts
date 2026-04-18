@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io, Socket } from 'socket.io-client';
@@ -20,6 +20,9 @@ type SessionUpdatePayload = {
 })
 export class LapLineTracker implements OnInit, OnDestroy {
   private socket!: Socket;
+  private pendingLogin = false;
+  private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private cdr = inject(ChangeDetectorRef);
 
   carNumbers: number[] = [];
 
@@ -34,11 +37,20 @@ export class LapLineTracker implements OnInit, OnDestroy {
   private hasRaceProgressed = false;
 
   ngOnInit(): void {
-    this.socket = io({ autoConnect: false, reconnection: true });
+    this.socket = io({
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 5000
+    });
 
     this.socket.on('connect', () => {
-      this.isConnected = true;
-      this.joinLapLineRoom();
+      if (this.pendingLogin || this.isAuthenticated) {
+        this.pendingLogin = false;
+        this.isConnected = true;
+        this.joinLapLineRoom();
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -46,12 +58,22 @@ export class LapLineTracker implements OnInit, OnDestroy {
       if (this.isAuthenticated) {
         this.statusMessage = 'Connection lost. Reconnecting...';
       }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('connect_error', () => {
-      this.isConnecting = false;
-      this.isConnected = false;
-      this.statusMessage = 'Unable to connect to server.';
+      this.clearLoginTimeout();
+      if (this.isAuthenticated) {
+        this.authError = '';
+      } else {
+        this.pendingLogin = false;
+        this.isConnecting = false;
+        this.isConnected = false;
+        this.isAuthenticated = false;
+        this.authError = 'Unable to connect to server.';
+        this.statusMessage = 'Authentication required.';
+      }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
@@ -78,18 +100,22 @@ export class LapLineTracker implements OnInit, OnDestroy {
       }
 
       this.statusMessage = 'Waiting for race start.';
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionUpdate', (args: SessionUpdatePayload) => {
       this.applyCarNumbers(args.carNumbers);
+      this.cdr.detectChanges();
     });
 
     this.socket.on('lapTimes', (args: { carNumbers: number[] }) => {
       this.applyCarNumbers(args.carNumbers);
+      this.cdr.detectChanges();
     });
   }
 
   ngOnDestroy(): void {
+    this.clearLoginTimeout();
     if (this.socket) {
       this.socket.disconnect();
     }
@@ -103,12 +129,14 @@ export class LapLineTracker implements OnInit, OnDestroy {
     this.isConnecting = true;
     this.authError = '';
     this.statusMessage = 'Connecting...';
+    this.startLoginTimeout();
 
     if (this.socket.connected) {
       this.joinLapLineRoom();
       return;
     }
 
+    this.pendingLogin = true;
     this.socket.connect();
   }
 
@@ -129,16 +157,28 @@ export class LapLineTracker implements OnInit, OnDestroy {
   }
 
   private joinLapLineRoom(): void {
-    this.socket.emit(
+    this.socket.timeout(5000).emit(
       'selectRoom',
       { room: 'lap-line-tracker', key: this.accessKey },
-      (response: { status: string }) => {
+      (err: Error | null, response: { status: string }) => {
+        this.clearLoginTimeout();
+        if (err) {
+          this.isConnecting = false;
+          this.isConnected = false;
+          this.isAuthenticated = false;
+          this.authError = 'Server did not respond in time. Please try again.';
+          this.statusMessage = 'Authentication required.';
+          this.cdr.detectChanges();
+          return;
+        }
+
         this.isConnecting = false;
 
         if (response?.status === 'Success') {
           this.isAuthenticated = true;
           this.authError = '';
           this.statusMessage = 'Connected. Waiting for race start.';
+          this.cdr.detectChanges();
           return;
         }
 
@@ -148,8 +188,33 @@ export class LapLineTracker implements OnInit, OnDestroy {
           : (response?.status ?? 'Room connection failed.');
         this.statusMessage = 'Authentication required.';
         this.socket.disconnect();
+        this.cdr.detectChanges();
       }
     );
+  }
+
+  private startLoginTimeout(): void {
+    this.clearLoginTimeout();
+    this.loginTimeoutId = setTimeout(() => {
+      if (!this.isConnecting) {
+        return;
+      }
+      this.pendingLogin = false;
+      this.isAuthenticated = false;
+      this.isConnected = false;
+      this.isConnecting = false;
+      this.authError = 'Connection timed out. Please try again.';
+      this.statusMessage = 'Authentication required.';
+      this.socket.disconnect();
+      this.cdr.detectChanges();
+    }, 8000);
+  }
+
+  private clearLoginTimeout(): void {
+    if (this.loginTimeoutId !== null) {
+      clearTimeout(this.loginTimeoutId);
+      this.loginTimeoutId = null;
+    }
   }
 
   private applyCarNumbers(carNumbers: number[]): void {
