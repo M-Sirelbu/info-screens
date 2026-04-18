@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
 
@@ -19,6 +19,7 @@ type NextSessionPayload = {
 })
 export class NextRace implements OnInit, OnDestroy {
   private socket!: Socket;
+  private cdr = inject(ChangeDetectorRef);
 
   connected = false;
   message = '';
@@ -45,6 +46,7 @@ export class NextRace implements OnInit, OnDestroy {
     this.socket.on('disconnect', () => {
       this.connected = false;
       this.message = 'Connection lost';
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionStatus', (args: { status: 'notStarted' | 'active' | 'finished' }) => {
@@ -54,18 +56,21 @@ export class NextRace implements OnInit, OnDestroy {
 
       if (args.status === 'active') {
         this.showPaddockPrompt = false;
+        this.cdr.detectChanges();
         return;
       }
 
       if (args.status === 'notStarted' && this.hasRaceProgressed) {
         this.showPaddockPrompt = true;
       }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionEnded', () => {
       this.showPaddockPrompt = true;
+      this.cdr.detectChanges();
     });
-  
+
     this.socket.on('nextSessionUpdate', (data: unknown) => {
       if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
@@ -75,16 +80,19 @@ export class NextRace implements OnInit, OnDestroy {
           this.showPaddockPrompt = true;
         }
 
+        this.cdr.detectChanges();
         return;
       }
 
       if (data && typeof data === 'object' && 'message' in data) {
         this.nextSession = null;
         this.message = String((data as { message?: string }).message ?? 'No upcoming session available');
+        this.cdr.detectChanges();
         return;
       }
 
       this.message = 'Unexpected update received';
+      this.cdr.detectChanges();
     });
   }
 
