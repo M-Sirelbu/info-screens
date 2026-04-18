@@ -73,23 +73,24 @@ function sessionsUpdated() {
 function broadcastSessionStatus() {
     const sessionStatus = repository.currentRace.status;
 
-    io.to("race-control").emit("sessionStatus", sessionStatus);
-    io.to("lap-line-tracker").emit("sessionStatus", sessionStatus);
-    io.to("leader-board").emit("sessionStatus", sessionStatus);
+    io.to("race-control").emit("sessionStatus", { status: sessionStatus });
+    io.to("lap-line-tracker").emit("sessionStatus", { status: sessionStatus });
+    io.to("leader-board").emit("sessionStatus", { status: sessionStatus });
 }
 
 function broadcastFlagChanged() {
     const flag = repository.currentRace.flag;
 
-    io.to("race-control").emit("flagChanged", flag);
-    io.to("leader-board").emit("flagChanged", flag);
-    io.to("race-flags").emit("flagChanged", flag);
+    io.to("race-control").emit("flagChanged", { flag: flag });
+    io.to("leader-board").emit("flagChanged", { flag: flag });
+    io.to("race-flags").emit("flagChanged", { flag: flag });
 }
 
 function broadcastNextSession() {
     const session = repository.sessions.length >= 2 ? repository.getSession(repository.sessions[1].sessionId) : null;
-
-    io.to("next-race").emit("nextSessionUpdate", session !== null ? session : null);
+    if (session !== null) {
+        io.to("next-race").emit("nextSessionUpdate", session);
+    }
 }
 
 io.on("connection", (socket) => {
@@ -148,13 +149,19 @@ io.on("connection", (socket) => {
         let result = repository.beginStartCountdown();
 
         if (result === "No session loaded") {
+            if (result === "No session loaded") {
+                if (repository.sessions.length === 0) {
+                    callback({ status: "No session loaded" });
+                    return;
+                }
+            }
             repository.loadSession(repository.sessions[0].sessionId);
             broadcastFlagChanged();
             broadcastSessionStatus();
             broadcastNextSession();
             io.to("front-desk").emit("sessionsUpdated", repository.sessions);
             io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
-            result = "Success";
+            result = repository.beginStartCountdown();
         }
 
         if (result !== "Success") {
