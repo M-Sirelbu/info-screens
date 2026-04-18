@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io, Socket } from 'socket.io-client';
@@ -22,6 +22,9 @@ type NextSessionPayload = {
 })
 export class RaceControl implements OnInit, OnDestroy {
   private socket!: Socket;
+  private pendingLogin = false;
+  private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private cdr = inject(ChangeDetectorRef);
 
   connected = false;
   sessionStatus: SessionStatus = 'notStarted';
@@ -34,10 +37,19 @@ export class RaceControl implements OnInit, OnDestroy {
   accessKey = '';
 
   ngOnInit(): void {
-    this.socket = io({ autoConnect: false, reconnection: true });
+    this.socket = io({
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 5000
+    });
 
     this.socket.on('connect', () => {
-      this.joinRaceControlRoom();
+      if (this.pendingLogin || this.connected) {
+        this.pendingLogin = false;
+        this.joinRaceControlRoom();
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -45,31 +57,43 @@ export class RaceControl implements OnInit, OnDestroy {
       if (this.accessKey.trim()) {
         this.message = 'Connection lost';
       }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('connect_error', () => {
-      this.connected = false;
-      this.isConnecting = false;
-      this.authError = 'Unable to connect to server.';
-      this.message = 'Authentication required.';
+      this.clearLoginTimeout();
+      if (this.connected) {
+        this.authError = '';
+      } else {
+        this.connected = false;
+        this.pendingLogin = false;
+        this.isConnecting = false;
+        this.authError = 'Unable to connect to server.';
+        this.message = 'Authentication required.';
+      }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
       this.sessionStatus = args.status;
+      this.cdr.detectChanges();
     });
 
     this.socket.on('flagChanged', (args: { flag: RaceFlag }) => {
       this.currentFlag = args.flag;
+      this.cdr.detectChanges();
     });
 
     this.socket.on('nextSessionUpdate', (data: unknown) => {
       if (this.isNextSessionPayload(data)) {
         this.nextSessionMessage = '';
+        this.cdr.detectChanges();
         return;
       }
 
       if (data && typeof data === 'object' && 'message' in data) {
         this.nextSessionMessage = String((data as { message?: string }).message ?? 'No upcoming races');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -82,12 +106,14 @@ export class RaceControl implements OnInit, OnDestroy {
     this.isConnecting = true;
     this.authError = '';
     this.message = 'Connecting...';
+    this.startLoginTimeout();
 
     if (this.socket.connected) {
       this.joinRaceControlRoom();
       return;
     }
 
+    this.pendingLogin = true;
     this.socket.connect();
   }
 
@@ -151,16 +177,27 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   private joinRaceControlRoom(): void {
-    this.socket.emit(
+    this.socket.timeout(5000).emit(
       'selectRoom',
       { room: 'race-control', key: this.accessKey },
-      (response: { status: string }) => {
+      (err: Error | null, response: { status: string }) => {
+        this.clearLoginTimeout();
+        if (err) {
+          this.isConnecting = false;
+          this.connected = false;
+          this.authError = 'Server did not respond in time. Please try again.';
+          this.message = 'Authentication required.';
+          this.cdr.detectChanges();
+          return;
+        }
+
         this.isConnecting = false;
 
         if (response?.status === 'Success') {
           this.connected = true;
           this.authError = '';
           this.message = 'Connected';
+          this.cdr.detectChanges();
           return;
         }
 
@@ -170,11 +207,36 @@ export class RaceControl implements OnInit, OnDestroy {
           : (response?.status ?? 'Authentication failed.');
         this.message = 'Authentication required.';
         this.socket.disconnect();
+        this.cdr.detectChanges();
       }
     );
   }
 
+  private startLoginTimeout(): void {
+    this.clearLoginTimeout();
+    this.loginTimeoutId = setTimeout(() => {
+      if (!this.isConnecting) {
+        return;
+      }
+      this.pendingLogin = false;
+      this.connected = false;
+      this.isConnecting = false;
+      this.authError = 'Connection timed out. Please try again.';
+      this.message = 'Authentication required.';
+      this.socket.disconnect();
+      this.cdr.detectChanges();
+    }, 8000);
+  }
+
+  private clearLoginTimeout(): void {
+    if (this.loginTimeoutId !== null) {
+      clearTimeout(this.loginTimeoutId);
+      this.loginTimeoutId = null;
+    }
+  }
+
   ngOnDestroy(): void {
+    this.clearLoginTimeout();
     if (this.socket) {
       this.socket.disconnect();
     }
