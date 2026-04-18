@@ -58,6 +58,9 @@ let timer = undefined;
 
 if (!("NGROK_AUTHTOKEN" in env)) {
     console.error("NGROK_AUTHTOKEN environment variable not set. Please set it to your ngrok authtoken or to \"none\" to run locally.");
+    console.error("Sign up for an account: https://dashboard.ngrok.com/signup");
+    console.error("Install your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken");
+    process.exit(1);
 }
 if (env.NGROK_AUTHTOKEN !== "none") {
     ngrok.connect({ addr: 8000, authtoken_from_env: true })
@@ -160,13 +163,13 @@ io.on("connection", (socket) => {
             duration: repository.defaultCountdownDuration
         }, (err, response) => {
             if (err) {
-                repository.startRaceCountdownActive = false;
+                repository.countdownInProgress = false;
                 callback({ status: "Invalid Session Status" });
                 return;
             }
             callback({ status: "Success" })
             setTimeout(() => {
-                repository.startRaceCountdownActive = false;
+                repository.countdownInProgress = false;
                 repository.startRace()
                 io.to("race-control")
                 .to("leader-board")
