@@ -119,29 +119,31 @@ export class RaceControl implements OnInit, OnDestroy {
 
   startRaceCountdown(): void {
     if (!this.socket || !this.connected) {
-    this.message = 'Not connected';
-    return;
-  }
+      this.message = 'Not connected';
+      return;
+    }
     this.socket.emit('raceStartCountdown', {}, (response: { status: string }) => {
       this.message = response?.status ?? 'Command sent';
+      this.cdr.detectChanges();
     });
   }
 
   changeFlag(flag: RaceFlag): void {
     if (!this.socket || !this.connected) {
-    this.message = 'Not connected';
-    return;
-  }
+      this.message = 'Not connected';
+      return;
+    }
     this.socket.emit('raceFlag', { flag }, (response: { status: string }) => {
       this.message = response?.status ?? 'Flag updated';
+      this.cdr.detectChanges();
     });
   }
 
   endSession(): void {
     if (!this.socket || !this.connected) {
-    this.message = 'Not connected';
-    return;
-  }
+      this.message = 'Not connected';
+      return;
+    }
     this.socket.emit('sessionEnd', {});
     this.message = 'Session end command sent';
   }
