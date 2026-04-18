@@ -71,33 +71,26 @@ function sessionsUpdated() {
 }
 
 function broadcastSessionStatus() {
-    const sessionStatus = repository.getSessionStatus();
+    const sessionStatus = repository.currentRace.status;
 
-    io.to("race-control").emit("sessionStatus", sessionStatus);
-    io.to("lap-line-tracker").emit("sessionStatus", sessionStatus);
-    io.to("leader-board").emit("sessionStatus", sessionStatus);
+    io.to("race-control").emit("sessionStatus", { status: sessionStatus });
+    io.to("lap-line-tracker").emit("sessionStatus", { status: sessionStatus });
+    io.to("leader-board").emit("sessionStatus", { status: sessionStatus });
 }
 
 function broadcastFlagChanged() {
-    const flag = repository.getFlag();
+    const flag = repository.currentRace.flag;
 
-    io.to("race-control").emit("flagChanged", flag);
-    io.to("leader-board").emit("flagChanged", flag);
-    io.to("race-flags").emit("flagChanged", flag);
+    io.to("race-control").emit("flagChanged", { flag: flag });
+    io.to("leader-board").emit("flagChanged", { flag: flag });
+    io.to("race-flags").emit("flagChanged", { flag: flag });
 }
 
 function broadcastNextSession() {
-    const result = repository.getNextSession();
-
-    if (result.status !== "Success") {
-        io.to("next-race").emit("nextSessionUpdate", {
-            status: "Error",
-            message: result.message
-        });
-        return;
+    const session = repository.sessions.length >= 2 ? repository.getSession(repository.sessions[1].sessionId) : null;
+    if (session !== null) {
+        io.to("next-race").emit("nextSessionUpdate", session);
     }
-
-    io.to("next-race").emit("nextSessionUpdate", result.session);
 }
 
 io.on("connection", (socket) => {
@@ -149,22 +142,41 @@ io.on("connection", (socket) => {
     socket.on("raceStartCountdown", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Invalid Session Status" });
+            console.log("Invalid role for starting countdown");
             return;
         }
 
-        const result = repository.beginStartCountdown();
+        let result = repository.beginStartCountdown();
+
+        if (result === "No session loaded") {
+            if (result === "No session loaded") {
+                if (repository.sessions.length === 0) {
+                    callback({ status: "No session loaded" });
+                    return;
+                }
+            }
+            repository.loadSession(repository.sessions[0].sessionId);
+            broadcastFlagChanged();
+            broadcastSessionStatus();
+            broadcastNextSession();
+            io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+            io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
+            result = repository.beginStartCountdown();
+        }
 
         if (result !== "Success") {
             callback({ status: result });
+            console.log(result);
             return;
         }
-
+        console.log("Starting countdown");
         io.timeout(5000).to("race-countdown").emit("startCountdown", {
             duration: repository.defaultCountdownDuration
         }, (err, response) => {
             if (err) {
                 repository.countdownInProgress = false;
                 callback({ status: "Invalid Session Status" });
+                console.log("No clients responded to startCountdown event, aborting countdown");
                 return;
             }
             callback({ status: "Success" })
@@ -284,9 +296,6 @@ server.listen(8000, () => {
 
 process.on('SIGINT', () => {
     console.log("Shutting down server...");
-    server.close(() => {
-        ngrok.kill();
-        console.log("Server closed.");
-        process.exit(0);
-    });
+    ngrok.kill();
+    process.exit(0);
 });
