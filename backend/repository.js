@@ -179,7 +179,7 @@ class Repository {
     }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
-            return "Invalid Session Status";
+            return "No session loaded";
         }
         if (this.currentRace.status !== "notStarted") {
             return "Invalid Session Status";
