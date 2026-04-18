@@ -38,6 +38,11 @@ module.exports = function onConnection (socket, repository, room) {
             break;
         case "lap-line-tracker":
             socket.emit("sessionStatus", { status: repository.currentRace.status });
+            socket.emit("sessionUpdate", {
+                sessionId: repository.currentRace.sessionId,
+                driverNames: repository.currentRace.driverNames,
+                carNumbers: repository.currentRace.carNumbers
+            });
             break;
     }
 }
