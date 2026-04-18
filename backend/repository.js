@@ -19,7 +19,7 @@ class Repository {
     };
     defaultRaceDuration = null;
     defaultCountdownDuration = null;
-    startRaceCountdownActive = false;
+    countdownInProgress = false;
     lastSessionId = 0;
     constructor(defaultRaceDuration, defaultCountdownDuration) {
         this.defaultRaceDuration = defaultRaceDuration;
@@ -30,8 +30,8 @@ class Repository {
         for (const session of this.sessions) {
             if (session.sessionId === sessionId) {
                 this.currentRace.sessionId = sessionId;
-                this.currentRace.carNumbers = session.carNumbers;
-                this.currentRace.driverNames = session.driverNames;
+                this.currentRace.carNumbers = JSON.parse(JSON.stringify(session.carNumbers));
+                this.currentRace.driverNames = JSON.parse(JSON.stringify(session.driverNames));
                 this.currentRace.completedLaps = [];
                 this.currentRace.bestLapTime = [];
                 this.currentRace.lastLapStartTimes = [];
@@ -184,10 +184,10 @@ class Repository {
         if (this.currentRace.status !== "notStarted") {
             return "Invalid Session Status";
         }
-        if (this.startRaceCountdownActive) {
+        if (this.countdownInProgress) {
             return "Countdown in Progress"
         }
-        this.startRaceCountdownActive = true;
+        this.countdownInProgress = true;
 
         return "Success";
     }
