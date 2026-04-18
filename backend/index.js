@@ -137,13 +137,13 @@ io.on("connection", (socket) => {
         callback({ status: status });
         if (args.flag === "finish") {
             repository.endRace();
-            io.to("front-desk")
+            io.to("race-control")
             .to("lap-line-tracker")
             .to("leader-board")
             .emit("sessionStatus", { status: repository.currentRace.status });
         }
     });
-    socket.on("raceStartCountdown", (callback) => {
+    socket.on("raceStartCountdown", (args, callback) => {
         if (!socket.rooms.has("race-control")) {
             callback({ status: "Invalid Session Status" });
             return;
@@ -157,7 +157,7 @@ io.on("connection", (socket) => {
         }
 
         io.timeout(5000).to("race-countdown").emit("startCountdown", {
-            duration: repository.currentRace.remainingSeconds
+            duration: repository.defaultCountdownDuration
         }, (err, response) => {
             if (err) {
                 repository.startRaceCountdownActive = false;
@@ -173,7 +173,7 @@ io.on("connection", (socket) => {
                 .to("race-flags")
                 .emit("flagChanged", { flag: repository.currentRace.flag });
                 
-                io.to("front-desk")
+                io.to("race-control")
                 .to("lap-line-tracker")
                 .to("leader-board")
                 .emit("sessionStatus", { status: repository.currentRace.status });
@@ -186,7 +186,7 @@ io.on("connection", (socket) => {
                 timer = setInterval(() => {
                     if (repository.currentRace.remainingSeconds < 0) {
                         repository.endRace();
-                        io.to("front-desk")
+                        io.to("race-control")
                         .to("lap-line-tracker")
                         .to("leader-board")
                         .emit("sessionStatus", { status: repository.currentRace.status });
@@ -216,7 +216,7 @@ io.on("connection", (socket) => {
         .to("race-flags")
         .emit("flagChanged", { flag: repository.currentRace.flag });
             
-        io.to("front-desk")
+        io.to("race-control")
         .to("lap-line-tracker")
         .to("leader-board")
         .emit("sessionStatus", { status: repository.currentRace.status });
@@ -273,19 +273,6 @@ io.on("connection", (socket) => {
             bestLapTime: repository.currentRace.bestLapTime
         });
     });
-
-    socket.on(clientEvents.SESSION_END, () => {
-        if (!socket.rooms.has("race-control")) {
-            return;
-        }
-
-        repository.endSession();
-        broadcastSessionStatus();
-        broadcastFlagChanged();
-        broadcastNextSession();
-    });
-
-    // Event listeners as modules can be added here
 });
 
 server.listen(8000, () => {
