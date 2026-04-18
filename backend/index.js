@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const { env } = require('node:process');
 const Repository = require('./repository');
 const onConnection = require('./on_connection');
+const { clear } = require('node:console');
 
 const app = express();
 const server = http.createServer(app);
@@ -137,6 +138,7 @@ io.on("connection", (socket) => {
             .to("lap-line-tracker")
             .to("leader-board")
             .emit("sessionStatus", { status: repository.currentRace.status });
+            repository.currentRace.remainingSeconds = 0;
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {
