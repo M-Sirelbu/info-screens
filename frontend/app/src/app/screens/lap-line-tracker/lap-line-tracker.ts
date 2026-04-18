@@ -86,20 +86,14 @@ export class LapLineTracker implements OnInit, OnDestroy {
 
       if (args.status === 'active') {
         this.statusMessage = 'Race active. Tap car buttons as cars cross the line.';
-        return;
-      }
-
-      if (args.status === 'finished') {
+      } else if (args.status === 'finished') {
         this.statusMessage = 'Finish mode active. Final laps can still be recorded.';
-        return;
-      }
-
-      if (args.status === 'notStarted' && this.hasRaceProgressed && previousStatus !== 'notStarted') {
+      } else if (args.status === 'notStarted' && this.hasRaceProgressed && previousStatus !== 'notStarted') {
         this.statusMessage = 'Race session ended. Lap input is disabled between sessions.';
-        return;
+      } else {
+        this.statusMessage = 'Waiting for race start.';
       }
 
-      this.statusMessage = 'Waiting for race start.';
       this.cdr.detectChanges();
     });
 
