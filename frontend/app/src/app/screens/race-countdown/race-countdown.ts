@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
 
@@ -11,6 +11,7 @@ import { io, Socket } from 'socket.io-client';
 })
 export class RaceCountdown implements OnInit, OnDestroy {
   private socket!: Socket;
+  private cdr = inject(ChangeDetectorRef);
 
   connected = false;
   countdown: number | null = null;
@@ -29,23 +30,25 @@ export class RaceCountdown implements OnInit, OnDestroy {
           } else {
             this.connected = false;
             this.message = response?.status ?? 'Connection failed';
+          }
+          this.cdr.detectChanges();
         }
-      }
-    );
-  });
-  
-  this.socket.on('disconnect', () => {
-    this.connected = false;
-    this.message = 'Connection lost';
+      );
     });
 
-    this.socket.on('startCountdown', (args: { duration: number }, 
+    this.socket.on('disconnect', () => {
+      this.connected = false;
+      this.message = 'Connection lost';
+      this.cdr.detectChanges();
+    });
+
+    this.socket.on('startCountdown', (args: { duration: number },
       callback?: () => void
     ) => {
       this.startCountdown(args?.duration ?? 10);
 
       if (callback) {
-      callback();
+        callback();
       }
      }
     );
@@ -57,6 +60,7 @@ export class RaceCountdown implements OnInit, OnDestroy {
     }
     
     this.countdown = duration;
+    this.cdr.detectChanges();
 
     this.intervalId = setInterval(() => {
       if (this.countdown !== null) {
@@ -67,6 +71,7 @@ export class RaceCountdown implements OnInit, OnDestroy {
           this.intervalId = null;
           this.countdown = null;
         }
+        this.cdr.detectChanges();
       }
     }, 1000);
   }

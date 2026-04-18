@@ -193,7 +193,7 @@ io.on("connection", (socket) => {
                 .to("leader-board")
                 .emit("sessionStatus", { status: repository.currentRace.status });
 
-                io.to("leader-board").emit("sessionUpdate", {
+                io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
                     sessionId: repository.currentRace.sessionId,
                     driverNames: repository.currentRace.driverNames,
                     carNumbers: repository.currentRace.carNumbers

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
 
@@ -27,6 +27,7 @@ type SessionUpdatePayload = {
 })
 export class LeaderBoard implements OnInit, OnDestroy {
   private socket!: Socket;
+  private cdr = inject(ChangeDetectorRef);
 
   sessionStatus: SessionStatus = 'notStarted';
   currentFlag: RaceFlag | null = null;
@@ -53,11 +54,13 @@ export class LeaderBoard implements OnInit, OnDestroy {
         } else {
           this.connectionError = null;
         }
+        this.cdr.detectChanges();
       });
     });
 
     this.socket.on('sessionUpdate', (args: { sessionId: number; driverNames: string[]; carNumbers: number[] }) => {
       this.syncSessionEntries(args);
+      this.cdr.detectChanges();
     });
 
     this.socket.on('nextSessionUpdate', (args: unknown) => {
@@ -68,14 +71,17 @@ export class LeaderBoard implements OnInit, OnDestroy {
       if (this.sessionStatus === 'notStarted') {
         this.syncSessionEntries(args);
       }
+      this.cdr.detectChanges();
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
       this.sessionStatus = args.status;
+      this.cdr.detectChanges();
     });
 
     this.socket.on('flagChanged', (args: { flag: RaceFlag }) => {
       this.currentFlag = args.flag;
+      this.cdr.detectChanges();
     });
 
     this.socket.on('lapTimes', (args: { carNumbers: number[]; completedLaps: number[]; bestLapTime: number[] }) => {
@@ -95,10 +101,12 @@ export class LeaderBoard implements OnInit, OnDestroy {
         entry.completedLaps = args.completedLaps[i] ?? entry.completedLaps;
         entry.bestLapTime = args.bestLapTime[i] ?? entry.bestLapTime;
       });
+      this.cdr.detectChanges();
     });
 
     this.socket.on('timerTick', (args: { remainingSeconds: number }) => {
       this.remainingSeconds = args.remainingSeconds;
+      this.cdr.detectChanges();
     });
   }
 
