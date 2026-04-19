@@ -9,6 +9,18 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './app.scss'
 })
 export class App {
+  isNavOpen = false;
+
+  toggleNav(): void {
+    this.isNavOpen = !this.isNavOpen;
+  }
+
+  closeNavOnMobile(): void {
+    if (window.innerWidth <= 1080) {
+      this.isNavOpen = false;
+    }
+  }
+  
   readonly authenticatedScreens = [
     { label: 'Front Desk', route: '/front-desk' },
     { label: 'Race Control', route: '/race-control' },
