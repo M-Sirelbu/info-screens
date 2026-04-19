@@ -67,8 +67,17 @@ Works in Linux / WSL (uses `export` syntax)
 
 ## URLs
 
-Frontend (dev): http://localhost:4200  
-Backend: http://localhost:8000  
+Open in browser: http://localhost:8000  
+
+Note: http://localhost:4200 is only for frontend development.
+
+---
+
+## Access Keys
+
+- receptionist_key → Front Desk (session and driver setup)  
+- safety_key → Race Control (start race, change modes, end session)  
+- observer_key → Lap-line Tracker (record laps)  
 
 ---
 
@@ -76,9 +85,9 @@ Backend: http://localhost:8000
 
 ### Employee (requires access key)
 
-- /front-desk  
-- /race-control  
-- /lap-line-tracker  
+- /front-desk → receptionist_key 
+- /race-control  → safety_key  
+- /lap-line-tracker  → observer_key 
 
 ### Public
 
@@ -86,6 +95,112 @@ Backend: http://localhost:8000
 - /next-race  
 - /race-countdown  
 - /race-flags  
+
+---
+
+## User Guide
+
+### Front Desk (/front-desk)
+
+- enter receptionist_key  
+- create a race session  
+- add drivers (max 8)  
+- car numbers are assigned automatically  
+- edit or remove drivers  
+
+Expected result:  
+Next Race screen updates with drivers and car assignments.
+
+---
+
+### Race Control (/race-control)
+
+- enter safety_key  
+- press Start to begin race  
+- change race mode:
+  - Safe → green  
+  - Hazard → yellow  
+  - Danger → red  
+  - Finish → chequered  
+- end session after race  
+
+Expected result:  
+- countdown starts  
+- leaderboard switches to live race  
+- flag screen updates immediately  
+
+---
+
+### Lap-line Tracker (/lap-line-tracker)
+
+- enter observer_key  
+- tap car number on each lap  
+
+Expected result:  
+- lap count increases  
+- fastest lap updates  
+- leaderboard updates in real time  
+
+---
+
+### Public Screens
+
+- /leader-board → drivers, laps, fastest lap, race mode  
+- /next-race → upcoming session and car assignments  
+- /race-countdown → remaining race time  
+- /race-flags → current flag display  
+
+All screens update automatically in real time.
+
+---
+
+## Review Flow (how to test)
+
+1. Open /front-desk  
+   → create session and add drivers  
+
+2. Open /next-race  
+   → verify drivers and car numbers  
+
+3. Open /race-control  
+   → start race  
+
+4. Open /race-countdown and /race-flags  
+   → verify timer and flags  
+
+5. Open /lap-line-tracker  
+   → record laps  
+
+6. Open /leader-board  
+   → verify ranking updates  
+
+7. Finish race in Race Control  
+   → verify results remain visible  
+
+---
+
+## Race Lifecycle
+
+1. Session is created (Front Desk)  
+2. Drivers are assigned cars  
+3. Race is started (Race Control)  
+4. Countdown begins  
+5. Laps are recorded (Lap-line Tracker)  
+6. Leaderboard updates live  
+7. Race enters Finish mode  
+8. Session is ended  
+9. Results remain visible until next race  
+
+---
+
+## Interface Behaviour
+
+The system can be used in two ways:
+
+- Each screen is available via its own route 
+- A combined view can display multiple screens at once  
+
+From any screen, it is possible to navigate to other screens without manually entering URLs.
 
 ---
 
