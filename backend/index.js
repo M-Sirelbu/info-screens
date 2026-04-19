@@ -102,6 +102,7 @@ function broadcastFlagChanged() {
 }
 
 function broadcastNextSession() {
+
     let session = {
         sessionId: -1,
         driverNames: [],
@@ -118,7 +119,13 @@ function broadcastNextSession() {
         if (loadedSession !== null) {
             session = loadedSession;
         }
-    }
+//    if (session !== null) {
+//        io.to("next-race").emit("nextSessionUpdate", session);
+//        io.to("race-control").emit("nextSessionUpdate", session);
+//    } else {
+//        io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races. Proceed to paddock." });
+//       io.to("race-control").emit("nextSessionUpdate", { message: "No upcoming races" });
+//    }
     io.to("next-race").emit("nextSessionUpdate", session);
 }
 
@@ -241,6 +248,7 @@ io.on("connection", (socket) => {
         broadcastSessionStatus();
         sessionsUpdated();
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
+        broadcastNextSession();
     });
 
     socket.on("sessionCreated", (args) => {

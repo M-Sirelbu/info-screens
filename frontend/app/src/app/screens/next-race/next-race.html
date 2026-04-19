@@ -38,7 +38,12 @@
     </ng-container>
 
     <ng-template #noSession>
-      <p class="muted">No upcoming session available.</p>
+      <div>
+        <p class="muted">{{ message || 'No upcoming races.' }}</p>
+        <p *ngIf="showPaddockPrompt" class="ended-message">
+          Please proceed to the paddock.
+        </p>
+      </div>
     </ng-template>
   </article>
 </section>

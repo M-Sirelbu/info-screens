@@ -94,7 +94,7 @@ class Repository {
         this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
-        const raceStartTimestamp = Date.now();
+        const raceStartTimestamp = 0;
         for (let i = 0; i < this.currentRace.lastLapStartTimes.length; i++) {
             this.currentRace.lastLapStartTimes[i] = raceStartTimestamp;
         }
@@ -312,6 +312,10 @@ class Repository {
     addLap(carNumber) {
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
+                if (this.currentRace.lastLapStartTimes[i] === 0) {
+                    this.currentRace.lastLapStartTimes[i] = Date.now();
+                    return;
+                }
                 this.currentRace.completedLaps[i]++;
                 const lapTimeStamp = Date.now();
                 const lapTime = (lapTimeStamp - this.currentRace.lastLapStartTimes[i]) / 1000;
