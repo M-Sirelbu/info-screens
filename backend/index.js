@@ -204,14 +204,14 @@ io.on("connection", (socket) => {
                 .to("leader-board")
                 .emit("sessionStatus", { status: repository.currentRace.status });
 
-                io.to("leader-board").emit("sessionUpdate", {
+                io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
                     sessionId: repository.currentRace.sessionId,
                     driverNames: repository.currentRace.driverNames,
                     carNumbers: repository.currentRace.carNumbers
                 });
                 timer = setInterval(() => {
-                    stopRaceTimer();
                     if (repository.currentRace.remainingSeconds < 0) {
+                        stopRaceTimer();
                         repository.endRace();
                         repository.currentRace.flag = "finish";
                         repository.currentRace.remainingSeconds = 0;
@@ -223,9 +223,6 @@ io.on("connection", (socket) => {
 
                         broadcastFlagChanged();
                         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
-
-                        clearInterval(timer);
-                        timer = undefined;
                     }
                     else {
                         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
