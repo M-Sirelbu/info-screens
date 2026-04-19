@@ -60,6 +60,7 @@ const timerTick = function() {
     if (repository.currentRace.remainingSeconds < 0) {
         repository.endRace();
         broadcastSessionStatus();
+        broadcastFlagChanged();
         clearInterval(timer);
     }
     else {
@@ -119,6 +120,7 @@ function broadcastNextSession() {
         if (loadedSession !== null) {
             session = loadedSession;
         }
+    }
 //    if (session !== null) {
 //        io.to("next-race").emit("nextSessionUpdate", session);
 //        io.to("race-control").emit("nextSessionUpdate", session);

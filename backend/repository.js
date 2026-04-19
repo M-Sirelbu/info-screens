@@ -194,6 +194,7 @@ class Repository {
     }
     endRace() {
         this.currentRace.status = "finished";
+        this.currentRace.flag = "finish";
     }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
