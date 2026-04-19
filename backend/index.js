@@ -102,11 +102,7 @@ function broadcastFlagChanged() {
 
 function broadcastNextSession(skipNextRace = false) {
 
-    let session = {
-        sessionId: -1,
-        driverNames: [],
-        carNumbers: []
-    }
+    let session = null;
     if (repository.sessions.length >= 2 && repository.currentRace.sessionId === repository.sessions[0].sessionId) {
         const loadedSession = repository.getSession(repository.sessions[1].sessionId);
         if (loadedSession !== null) {
@@ -119,7 +115,7 @@ function broadcastNextSession(skipNextRace = false) {
             session = loadedSession;
         }
     }
-    if (session.sessionId !== -1) {
+    if (session.sessionId !== null) {
         if (!skipNextRace) {
             io.to("next-race").emit("nextSessionUpdate", session);
         }
