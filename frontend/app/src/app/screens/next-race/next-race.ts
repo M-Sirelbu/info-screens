@@ -75,6 +75,7 @@ export class NextRace implements OnInit, OnDestroy {
       if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
         this.message = '';
+        this.showPaddockPrompt = false;
 
         if (data.status === 'ended') {
           this.showPaddockPrompt = true;
@@ -86,7 +87,10 @@ export class NextRace implements OnInit, OnDestroy {
 
       if (data && typeof data === 'object' && 'message' in data) {
         this.nextSession = null;
-        this.message = String((data as { message?: string }).message ?? 'No upcoming session available');
+        this.message = String((data as { message?: string }).message ?? 'No upcoming races');
+        if (this.hasRaceProgressed) {
+          this.showPaddockPrompt = true;
+        }
         this.cdr.detectChanges();
         return;
       }
