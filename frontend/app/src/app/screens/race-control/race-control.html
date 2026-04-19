@@ -38,7 +38,7 @@
 
 		<section class="control-group" *ngIf="showRaceControls()">
 			<h2>Race</h2>
-			<button class="btn btn-primary" type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
+			<button class="btn btn-primary btn-full" type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
 				Start Race
 			</button>
 		</section>
@@ -64,7 +64,7 @@
 		<section class="control-group" *ngIf="showEndSessionButton()">
 			<h2>Session</h2>
 			<p class="session-ready">Race is in Finish mode. End the session when all cars are in pit lane.</p>
-			<button class="btn btn-danger" type="button" (click)="endSession()" [disabled]="!canEndSession()">
+			<button class="btn btn-danger btn-full" type="button" (click)="endSession()" [disabled]="!canEndSession()">
 				End Session
 			</button>
 		</section>
