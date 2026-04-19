@@ -7,7 +7,7 @@ module.exports = function onConnection (socket, repository, room) {
             session = loadedSession;
         }
     } 
-    else if (repository.sessions.length === 1 && repository.currentRace.sessionId !== repository.sessions[0].sessionId) {
+    else if ((repository.sessions.length === 1 && repository.currentRace.sessionId !== repository.sessions[0].sessionId) || (repository.sessions.length > 0 && repository.currentRace.sessionId === null)) {
         const loadedSession = repository.getSession(repository.sessions[0].sessionId);
         if (loadedSession !== null) {
             session = loadedSession;
