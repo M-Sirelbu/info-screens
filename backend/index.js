@@ -86,9 +86,6 @@ function sessionsUpdated() {
 function broadcastSessionStatus() {
     let sessionStatus = repository.currentRace.status;
     io.to("race-control").emit("sessionStatus", { status: sessionStatus });
-    if (sessionStatus === "none") {
-        sessionStatus = "finished";
-    }
     io.to("lap-line-tracker").emit("sessionStatus", { status: sessionStatus });
     io.to("leader-board").emit("sessionStatus", { status: sessionStatus });
     io.to("next-race").emit("sessionStatus", { status: sessionStatus });
@@ -102,7 +99,7 @@ function broadcastFlagChanged() {
     io.to("race-flags").emit("flagChanged", { flag: flag });
 }
 
-function broadcastNextSession() {
+function broadcastNextSession(skipNextRace = false) {
 
     let session = {
         sessionId: -1,
@@ -121,14 +118,17 @@ function broadcastNextSession() {
             session = loadedSession;
         }
     }
-//    if (session !== null) {
-//        io.to("next-race").emit("nextSessionUpdate", session);
-//        io.to("race-control").emit("nextSessionUpdate", session);
-//    } else {
-//        io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races. Proceed to paddock." });
-//       io.to("race-control").emit("nextSessionUpdate", { message: "No upcoming races" });
-//    }
-    io.to("next-race").emit("nextSessionUpdate", session);
+    if (session.sessionId !== -1) {
+        if (!skipNextRace) {
+            io.to("next-race").emit("nextSessionUpdate", session);
+        }
+        io.to("race-control").emit("nextSessionUpdate", session);
+    } else {
+        if (!skipNextRace) {
+            io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races" });
+        }
+        io.to("race-control").emit("nextSessionUpdate", { message: "No upcoming races" });
+    }
 }
 
 io.on("connection", (socket) => {
@@ -252,8 +252,11 @@ io.on("connection", (socket) => {
             repository.loadSession(repository.sessions[1].sessionId);
         }
         
+
         broadcastFlagChanged();
         broadcastSessionStatus();
+        // Next Race screen does not need to be updated yet, so skip it by passing skipNextRace as true
+        broadcastNextSession(true);
         sessionsUpdated();
 
         io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
@@ -283,10 +286,6 @@ io.on("connection", (socket) => {
         }
         repository.addSession([], []);
         sessionsUpdated();
-        if (repository.currentRace.status === "none") {
-            repository.currentRace.status = "finished";
-            broadcastSessionStatus();
-        }
         broadcastNextSession();
     });
     socket.on("sessionRemoved", (args) => {

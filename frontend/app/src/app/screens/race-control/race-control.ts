@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { io, Socket } from 'socket.io-client';
 
-type SessionStatus = 'notStarted' | 'active' | 'finished' | 'none' | 'canStart';
+type SessionStatus = 'notStarted' | 'active' | 'finished';
 type RaceFlag = 'green' | 'yellow' | 'red' | 'finish';
 
 type NextSessionPayload = {
@@ -27,7 +27,7 @@ export class RaceControl implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   connected = false;
-  sessionStatus: SessionStatus = 'none';
+  sessionStatus: SessionStatus = 'finished';
   currentFlag: RaceFlag | '' = '';
   message = '';
   authError = '';
@@ -75,11 +75,7 @@ export class RaceControl implements OnInit, OnDestroy {
     });
 
     this.socket.on('sessionStatus', (args: { status: SessionStatus }) => {
-      if (this.sessionStatus === 'none' && args.status === 'finished') {
-        this.sessionStatus = 'canStart';
-      } else {
-        this.sessionStatus = args.status;
-      }
+      this.sessionStatus = args.status;
       this.cdr.detectChanges();
     });
 
@@ -161,23 +157,15 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   canEndSession(): boolean {
-    return this.connected && (this.sessionStatus === 'finished' || this.sessionStatus === 'canStart');
+    return this.connected && this.sessionStatus === 'finished' && this.nextSessionMessage === '';
   }
 
   showRaceControls(): boolean {
-    return this.connected && this.sessionStatus !== 'finished' && this.sessionStatus !== 'none' && this.sessionStatus !== 'canStart';
+    return this.connected && this.sessionStatus !== 'finished';
   }
 
   showEndSessionButton(): boolean {
     return this.connected && this.sessionStatus === 'finished';
-  }
-
-  showStartSessionButton(): boolean {
-    return this.connected && (this.sessionStatus === 'canStart');
-  }
-
-  showNoActiveSession(): boolean {
-    return this.connected && (this.sessionStatus === 'none');
   }
 
   private isNextSessionPayload(data: unknown): data is NextSessionPayload {

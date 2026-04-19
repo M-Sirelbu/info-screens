@@ -1,7 +1,7 @@
 class Repository {
     sessions = [];
     currentRace = {
-        status: "none",
+        status: "finished",
         sessionId: null,
         carNumbers: null,
         driverNames: null,
@@ -55,7 +55,7 @@ class Repository {
     loadEmptySession() {
         const oldSessionId = this.currentRace.sessionId;
         this.currentRace = {
-            status: "none",
+            status: "finished",
             sessionId: null,
             carNumbers: null,
             driverNames: null,
@@ -134,12 +134,12 @@ class Repository {
             return;
         }
 
-        if (this.currentRace.status !== "finished" && this.currentRace.status !== "none") {
+        if (this.currentRace.status !== "finished") {
             return;
         }
 
         this.currentRace = {
-           status: "notStarted",
+           status: "finished",
            sessionId: null,
            carNumbers: null,
            completedLaps: null,

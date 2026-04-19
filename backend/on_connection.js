@@ -1,6 +1,22 @@
 module.exports = function onConnection (socket, repository, room) {
-    let status = repository.currentRace.status;
-    status = status === "none" ? "finished" : status;
+    const status = repository.currentRace.status;
+    let session = {
+        sessionId: -1,
+        driverNames: [],
+        carNumbers: []
+    }
+    if (repository.sessions.length >= 2 && repository.currentRace.sessionId === repository.sessions[0].sessionId) {
+        const loadedSession = repository.getSession(repository.sessions[1].sessionId);
+        if (loadedSession !== null) {
+            session = loadedSession;
+        }
+    } 
+    else if (repository.sessions.length === 1 && repository.currentRace.sessionId !== repository.sessions[0].sessionId) {
+        const loadedSession = repository.getSession(repository.sessions[0].sessionId);
+        if (loadedSession !== null) {
+            session = loadedSession;
+        }
+    }
     switch (room) {
         case "leader-board":
             socket.emit("sessionUpdate", {
@@ -19,8 +35,10 @@ module.exports = function onConnection (socket, repository, room) {
             }
             break;
         case "next-race":
-            if (repository.sessions.length >= 2) {
-                socket.emit("nextSessionUpdate", repository.getSession(repository.sessions[1].sessionId));
+            if (session.sessionId !== -1) {
+                socket.emit("nextSessionUpdate", session);
+            } else {
+                socket.emit("nextSessionUpdate", { message: "No upcoming races" });
             }
             break;
         case "race-countdown":
@@ -37,6 +55,11 @@ module.exports = function onConnection (socket, repository, room) {
         case "race-control":
             socket.emit("sessionStatus", { status: repository.currentRace.status });
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
+            if (session.sessionId !== -1) {
+                socket.emit("nextSessionUpdate", session);
+            } else {
+                socket.emit("nextSessionUpdate", { message: "No upcoming races" });
+            }
             break;
         case "lap-line-tracker":
             socket.emit("sessionStatus", { status: status });
