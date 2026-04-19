@@ -136,12 +136,17 @@ io.on("connection", (socket) => {
         }
         callback({ status: status });
         if (args.flag === "finish") {
+            if (timer !== undefined) {
+                clearInterval(timer);
+                timer = undefined;
+            }            
             repository.endRace();
             io.to("race-control")
             .to("lap-line-tracker")
             .to("leader-board")
             .emit("sessionStatus", { status: repository.currentRace.status });
             repository.currentRace.remainingSeconds = 0;
+            io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {
@@ -154,11 +159,9 @@ io.on("connection", (socket) => {
         let result = repository.beginStartCountdown();
 
         if (result === "No session loaded") {
-            if (result === "No session loaded") {
-                if (repository.sessions.length === 0) {
-                    callback({ status: "No session loaded" });
-                    return;
-                }
+            if (repository.sessions.length === 0) {
+                callback({ status: "No session loaded" });
+                return;
             }
             repository.loadSession(repository.sessions[0].sessionId);
             broadcastFlagChanged();
@@ -206,13 +209,16 @@ io.on("connection", (socket) => {
                 timer = setInterval(() => {
                     if (repository.currentRace.remainingSeconds < 0) {
                         repository.endRace();
+                        repository.currentRace.remainingSeconds = 0;
                         io.to("race-control")
                         .to("lap-line-tracker")
                         .to("leader-board")
                         .emit("sessionStatus", { status: repository.currentRace.status });
                         repository.currentRace.flag = "finish";
                         broadcastFlagChanged();
+                        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
                         clearInterval(timer);
+                        timer = undefined;
                     }
                     else {
                         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
@@ -229,8 +235,7 @@ io.on("connection", (socket) => {
         }
 
         if (repository.sessions.length < 2) {
-            // no next session → broadcast empty state
-            io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races" });
+            broadcastNextSession();
             return;
         }
 

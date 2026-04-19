@@ -291,7 +291,8 @@ class Repository {
     addLap(carNumber) {
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
-                if (this.currentRace.lastLapStartTimes[i] === 0) {
+                if (this.currentRace.completedLaps[i] === 0) {
+                    this.currentRace.completedLaps[i] = 1;
                     this.currentRace.lastLapStartTimes[i] = Date.now();
                     return;
                 }
