@@ -90,6 +90,10 @@ function broadcastNextSession() {
     const session = repository.sessions.length >= 2 ? repository.getSession(repository.sessions[1].sessionId) : null;
     if (session !== null) {
         io.to("next-race").emit("nextSessionUpdate", session);
+        io.to("race-control").emit("nextSessionUpdate", session);
+    } else {
+        io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races. Proceed to paddock." });
+        io.to("race-control").emit("nextSessionUpdate", { message: "No upcoming races" });
     }
 }
 
@@ -212,9 +216,7 @@ io.on("connection", (socket) => {
                         repository.currentRace.remainingSeconds--;
                     }
                 }, 1000);
-                if (repository.sessions.length >= 2) {
-                    io.to("next-race").emit("nextSessionUpdate", repository.getSession(repository.sessions[1].sessionId));
-                }
+                broadcastNextSession();
             }, repository.defaultCountdownDuration * 1000)
         });
     });
@@ -239,6 +241,7 @@ io.on("connection", (socket) => {
         io.to("front-desk").emit("sessionsUpdated", repository.sessions);
 
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
+        broadcastNextSession();
     });
 
     socket.on("sessionCreated", (args) => {
