@@ -218,9 +218,6 @@ class Repository {
             carNumbers: carNumbers
         });
         this.lastSessionId++;
-        if (this.sessions.length === 1) {
-            this.nextSessionId = this.sessions[0].sessionId;
-        }
     }
 
     updateSession(sessionId, driverNames, carNumbers) {

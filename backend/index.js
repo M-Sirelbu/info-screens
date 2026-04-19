@@ -62,6 +62,7 @@ const timerTick = function() {
         broadcastSessionStatus();
         broadcastFlagChanged();
         clearInterval(timer);
+        timer = undefined;
     }
     else {
         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
