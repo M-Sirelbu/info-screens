@@ -4,20 +4,32 @@ Real-time race operations and public information system for Beachside Racetrack.
 
 This project is designed to replace several manual trackside processes with a Socket.IO-powered system that lets employees control races and lets drivers and spectators see live race information on dedicated screens.
 
+---
+
+## Prerequisites
+
+- Node.js  
+- npm  
+- Angular CLI (required because `npm start` runs `ng build`)
+
+---
+
 ## Project structure
 
+```bash
 .
 ├── backend        # Node.js + Socket.IO server
 ├── docs           # documentation (optional)
 └── frontend
     └── app        # Angular application
-
+```
 ---
 
 ## Setup
 
 Install dependencies in both frontend and backend:
 
+```bash
 cd frontend/app
 npm install
 
@@ -25,51 +37,56 @@ cd ../../backend
 npm install
 
 cd ..
-
+```
 ---
 
 ## Environment variables
 
 The backend will not start without these:
 
+```bash
 export receptionist_key=your_value_here
 export observer_key=your_value_here
 export safety_key=your_value_here
-
+```
 Use any value for access keys when running locally.  
 The same value must be entered in the UI.
+
+---
 
 ### NGROK
 
 If using ngrok:
-
+```bash
 export NGROK_AUTHTOKEN=your_token_here
-
+```
 For local use:
-
+```bash
 export NGROK_AUTHTOKEN=none
-
+```
 ---
 
 ## Run
 
-From project root:
-
+```bash
 npm start
-
+```
 Development mode:
 
+```bash
 npm run dev
+```
+Open:
 
-Works in Linux / WSL (uses `export` syntax)
+http://localhost:8000
 
 ---
 
 ## URLs
 
-Open in browser: http://localhost:8000  
-
-Note: http://localhost:4200 is only for frontend development.
+- http://localhost:8000 → main app  
+- ngrok URL → printed in terminal
+- http://localhost:4200 → frontend dev only
 
 ---
 
@@ -195,18 +212,14 @@ All screens update automatically in real time.
 
 ## Interface Behaviour
 
-The system can be used in two ways:
-
-- Each screen is available via its own route 
-- A combined view can display multiple screens at once  
-
+The app has a home screen with navigation to all screens.
 From any screen, it is possible to navigate to other screens without manually entering URLs.
 
 ---
 
 ## Tech
 
-- Angular  
+- Angular CLI 
 - Node.js  
 - Express  
 - Socket.IO  
