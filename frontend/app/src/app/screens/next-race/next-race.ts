@@ -22,7 +22,7 @@ export class NextRace implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   connected = false;
-  message = '';
+  message = 'No upcoming session available';
   nextSession: NextSessionPayload | null = null;
   showPaddockPrompt = false;
   private hasRaceProgressed = false;

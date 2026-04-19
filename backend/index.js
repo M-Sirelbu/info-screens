@@ -56,6 +56,20 @@ const repository = new Repository(raceDuration, 10);
 
 let timer = undefined;
 
+const timerTick = function() {
+    if (repository.currentRace.remainingSeconds < 0) {
+        repository.endRace();
+        broadcastSessionStatus();
+        broadcastFlagChanged();
+        clearInterval(timer);
+        timer = undefined;
+    }
+    else {
+        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
+        repository.currentRace.remainingSeconds--;
+    }
+}
+
 if (!("NGROK_AUTHTOKEN" in env)) {
     console.error("NGROK_AUTHTOKEN environment variable not set. Please set it to your ngrok authtoken or to \"none\" to run locally.");
     console.error("Sign up for an account: https://dashboard.ngrok.com/signup");
@@ -71,11 +85,11 @@ function sessionsUpdated() {
 }
 
 function broadcastSessionStatus() {
-    const sessionStatus = repository.currentRace.status;
-
+    let sessionStatus = repository.currentRace.status;
     io.to("race-control").emit("sessionStatus", { status: sessionStatus });
     io.to("lap-line-tracker").emit("sessionStatus", { status: sessionStatus });
     io.to("leader-board").emit("sessionStatus", { status: sessionStatus });
+    io.to("next-race").emit("sessionStatus", { status: sessionStatus });
 }
 
 function broadcastFlagChanged() {
@@ -86,13 +100,30 @@ function broadcastFlagChanged() {
     io.to("race-flags").emit("flagChanged", { flag: flag });
 }
 
-function broadcastNextSession() {
-    const session = repository.sessions.length >= 2 ? repository.getSession(repository.sessions[1].sessionId) : null;
+function broadcastNextSession(skipNextRace = false) {
+
+    let session = null;
+    if (repository.sessions.length >= 2 && repository.currentRace.sessionId === repository.sessions[0].sessionId) {
+        const loadedSession = repository.getSession(repository.sessions[1].sessionId);
+        if (loadedSession !== null) {
+            session = loadedSession;
+        }
+    } 
+    else if (repository.sessions.length === 1 && repository.currentRace.sessionId !== repository.sessions[0].sessionId) {
+        const loadedSession = repository.getSession(repository.sessions[0].sessionId);
+        if (loadedSession !== null) {
+            session = loadedSession;
+        }
+    }
     if (session !== null) {
-        io.to("next-race").emit("nextSessionUpdate", session);
+        if (!skipNextRace) {
+            io.to("next-race").emit("nextSessionUpdate", session);
+        }
         io.to("race-control").emit("nextSessionUpdate", session);
     } else {
-        io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races. Proceed to paddock." });
+        if (!skipNextRace) {
+            io.to("next-race").emit("nextSessionUpdate", { message: "No upcoming races" });
+        }
         io.to("race-control").emit("nextSessionUpdate", { message: "No upcoming races" });
     }
 }
@@ -129,10 +160,7 @@ io.on("connection", (socket) => {
         }
         let status = repository.setFlag(args.flag);
         if (status === "Success") {
-            io.to("race-control")
-            .to("leader-board")
-            .to("race-flags")
-            .emit("flagChanged", { flag: repository.currentRace.flag });
+            broadcastFlagChanged();
         }
         callback({ status: status });
         if (args.flag === "finish") {
@@ -141,10 +169,7 @@ io.on("connection", (socket) => {
                 timer = undefined;
             }            
             repository.endRace();
-            io.to("race-control")
-            .to("lap-line-tracker")
-            .to("leader-board")
-            .emit("sessionStatus", { status: repository.currentRace.status });
+            broadcastSessionStatus();
             repository.currentRace.remainingSeconds = 0;
             io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         }
@@ -181,51 +206,23 @@ io.on("connection", (socket) => {
         io.timeout(5000).to("race-countdown").emit("startCountdown", {
             duration: repository.defaultCountdownDuration
         }, (err, response) => {
-            if (err) {
-                repository.countdownInProgress = false;
-                callback({ status: "Invalid Session Status" });
-                console.log("No clients responded to startCountdown event, aborting countdown");
-                return;
-            }
             callback({ status: "Success" })
             setTimeout(() => {
                 repository.countdownInProgress = false;
                 repository.startRace()
-                io.to("race-control")
-                .to("leader-board")
-                .to("race-flags")
-                .emit("flagChanged", { flag: repository.currentRace.flag });
-                
-                io.to("race-control")
-                .to("lap-line-tracker")
-                .to("leader-board")
-                .emit("sessionStatus", { status: repository.currentRace.status });
+
+                broadcastFlagChanged();
+                broadcastSessionStatus();
+                broadcastNextSession();
 
                 io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
                     sessionId: repository.currentRace.sessionId,
                     driverNames: repository.currentRace.driverNames,
                     carNumbers: repository.currentRace.carNumbers
                 });
-                timer = setInterval(() => {
-                    if (repository.currentRace.remainingSeconds < 0) {
-                        repository.endRace();
-                        repository.currentRace.remainingSeconds = 0;
-                        io.to("race-control")
-                        .to("lap-line-tracker")
-                        .to("leader-board")
-                        .emit("sessionStatus", { status: repository.currentRace.status });
-                        repository.currentRace.flag = "finish";
-                        broadcastFlagChanged();
-                        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
-                        clearInterval(timer);
-                        timer = undefined;
-                    }
-                    else {
-                        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
-                        repository.currentRace.remainingSeconds--;
-                    }
-                }, 1000);
-                broadcastNextSession();
+
+                clearInterval(timer);
+                timer = setInterval(timerTick, 1000);
             }, repository.defaultCountdownDuration * 1000)
         });
     });
@@ -235,15 +232,29 @@ io.on("connection", (socket) => {
         }
 
         if (repository.sessions.length < 2) {
-            broadcastNextSession();
-            return;
+            // Load a non-functional session of id -1 into currentRace
+            repository.loadEmptySession();
+            if (repository.sessions.length === 0) {
+                // In loading session, old stale session will be deleted, so everything needs to be updated.
+                broadcastFlagChanged();
+                broadcastSessionStatus();
+                broadcastNextSession();
+                return;
+            }
         }
-
-        repository.loadSession(repository.sessions[1].sessionId);
+        if (repository.sessions.length === 1) {
+            repository.loadSession(repository.sessions[0].sessionId);
+        }
+        else {
+            repository.loadSession(repository.sessions[1].sessionId);
+        }
+        
 
         broadcastFlagChanged();
         broadcastSessionStatus();
-        broadcastNextSession();
+        // Next Race screen does not need to be updated yet, so skip it by passing skipNextRace as true
+        broadcastNextSession(true);
+        sessionsUpdated();
 
         io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
             sessionId: repository.currentRace.sessionId,
@@ -264,7 +275,6 @@ io.on("connection", (socket) => {
         io.to("front-desk").emit("sessionsUpdated", repository.sessions);
 
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
-        broadcastNextSession();
     });
 
     socket.on("sessionCreated", (args) => {
@@ -273,6 +283,7 @@ io.on("connection", (socket) => {
         }
         repository.addSession([], []);
         sessionsUpdated();
+        broadcastNextSession();
     });
     socket.on("sessionRemoved", (args) => {
         if (!socket.rooms.has("front-desk")) {
@@ -280,6 +291,7 @@ io.on("connection", (socket) => {
         }
         repository.deleteSession(args.sessionId);
         sessionsUpdated();
+        broadcastNextSession();
     });
     socket.on("driverAdded", (args) => {
         if (!socket.rooms.has("front-desk")) {
@@ -287,6 +299,7 @@ io.on("connection", (socket) => {
         }
         repository.addDriver(args.sessionId, args.driverName);
         sessionsUpdated();
+        broadcastNextSession();
     });
     socket.on("driverEdited", (args) => {
         if (!socket.rooms.has("front-desk")) {
@@ -294,6 +307,7 @@ io.on("connection", (socket) => {
         }
         repository.updateDriver(args.sessionId, args.driverName, args.newName);
         sessionsUpdated();
+        broadcastNextSession();
     });
     socket.on("driverRemoved", (args) => {
         if (!socket.rooms.has("front-desk")) {
@@ -301,6 +315,7 @@ io.on("connection", (socket) => {
         }
         repository.deleteDriver(args.sessionId, args.driverName);
         sessionsUpdated();
+        broadcastNextSession();
     });
 
     socket.on("lap", (args) => {

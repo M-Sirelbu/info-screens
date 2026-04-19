@@ -69,9 +69,6 @@
 			</button>
 		</section>
 
-		<section class="control-group" *ngIf="nextSessionMessage">
-			<h2>Next Session</h2>
-			<p class="session-status">{{ nextSessionMessage }}</p>
-		</section>
+		<p class="muted" *ngIf="nextSessionMessage">{{ nextSessionMessage }}</p>
 	</article>
 </section>

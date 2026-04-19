@@ -102,6 +102,7 @@
                   [ngModel]="session.carNumbers[i]"
                   (ngModelChange)="changeDriverCar(session.sessionId, driverName, $event)"
                   [attr.aria-label]="'Assign car for ' + driverName"
+                  [disabled]="true"
                 >
                   <option
                     *ngFor="let car of carOptions"

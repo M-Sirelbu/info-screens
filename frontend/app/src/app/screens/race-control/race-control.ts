@@ -27,7 +27,7 @@ export class RaceControl implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   connected = false;
-  sessionStatus: SessionStatus = 'notStarted';
+  sessionStatus: SessionStatus = 'finished';
   currentFlag: RaceFlag | '' = '';
   message = '';
   authError = '';
@@ -157,7 +157,7 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   canEndSession(): boolean {
-    return this.connected && this.sessionStatus === 'finished';
+    return this.connected && this.sessionStatus === 'finished' && this.nextSessionMessage === '';
   }
 
   showRaceControls(): boolean {
