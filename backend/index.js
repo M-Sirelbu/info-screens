@@ -165,9 +165,14 @@ io.on("connection", (socket) => {
         }
         callback({ status: status });
         if (args.flag === "finish") {
+            if (timer !== undefined) {
+                clearInterval(timer);
+                timer = undefined;
+            }            
             repository.endRace();
             broadcastSessionStatus();
             repository.currentRace.remainingSeconds = 0;
+            io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {
@@ -226,6 +231,7 @@ io.on("connection", (socket) => {
         if (!socket.rooms.has("race-control")) {
             return;
         }
+
         if (repository.sessions.length < 2) {
             // Load a non-functional session of id -1 into currentRace
             repository.loadEmptySession();
@@ -247,8 +253,26 @@ io.on("connection", (socket) => {
         broadcastFlagChanged();
         broadcastSessionStatus();
         sessionsUpdated();
+
+        io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
+            sessionId: repository.currentRace.sessionId,
+            driverNames: repository.currentRace.driverNames,
+            carNumbers: repository.currentRace.carNumbers
+        });
+
+        io.to("race-control")
+        .to("leader-board")
+        .to("race-flags")
+        .emit("flagChanged", { flag: repository.currentRace.flag });
+            
+        io.to("race-control")
+        .to("lap-line-tracker")
+        .to("leader-board")
+        .emit("sessionStatus", { status: repository.currentRace.status });
+
+        io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
-        broadcastNextSession();
     });
 
     socket.on("sessionCreated", (args) => {
