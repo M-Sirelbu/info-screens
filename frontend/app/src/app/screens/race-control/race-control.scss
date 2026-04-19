@@ -1,6 +1,6 @@
 .race-control-screen {
-	align-content: center;
-	padding: 1rem;
+		padding: 1rem;
+		box-sizing: border-box;
 }
 
 .auth-screen {
@@ -30,6 +30,7 @@
 
 .btn-full {
 	width: 100%;
+	min-height: 56px;
 }
 
 .error {
@@ -42,6 +43,8 @@
 	padding-top: 1rem;
 	margin-top: 1rem;
 	border-top: 1px solid rgba(161, 194, 227, 0.17);
+	display: grid;
+	gap: 0.75rem;
 }
 
 .button-row {	
@@ -56,6 +59,7 @@
 	min-height: 56px;
 	padding: 1rem 1.25rem;
 	font-size: 1rem;
+	touch-action: manipulation;
 }
 
 .button-row .btn:active,
@@ -66,6 +70,11 @@
 .session-ready {
 	margin: 0 0 0.7rem;
 	color: #d4e7fa;
+}
+
+.session-status {
+	margin: 0;
+	word-break: break-word;
 }
 
 .status-grid {

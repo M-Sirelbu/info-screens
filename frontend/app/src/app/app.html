@@ -1,15 +1,14 @@
 <div class="app-shell">
 	<header class="top-nav">
-		<nav class="nav-group nav-left" aria-label="Authenticated screens">
-			<a
-				*ngFor="let item of authenticatedScreens"
-				class="nav-link"
-				[routerLink]="item.route"
-				routerLinkActive="active"
-			>
-				{{ item.label }}
-			</a>
-		</nav>
+		<button
+			class="nav-toggle"
+			type="button"
+			(click)="toggleNav()"
+			[attr.aria-expanded]="isNavOpen"
+			aria-label="Toggle navigation"
+		>
+			{{ isNavOpen ? 'Close menu' : 'Open menu' }}
+		</button>
 
 		<a
 			class="home-link"
@@ -17,20 +16,36 @@
 			routerLinkActive="active"
 			[routerLinkActiveOptions]="{ exact: true }"
 			aria-label="Go to Beachside Racetrack home"
+			(click)="closeNavOnMobile()"
 		>
 			Beachside Racetrack
 		</a>
 
-		<nav class="nav-group nav-right" aria-label="Public screens">
-			<a
-				*ngFor="let item of publicScreens"
-				class="nav-link"
-				[routerLink]="item.route"
-				routerLinkActive="active"
-			>
-				{{ item.label }}
-			</a>
-		</nav>
+		<div class="nav-collapse" [class.open]="isNavOpen">
+			<nav class="nav-group nav-left" aria-label="Authenticated screens">
+				<a
+					*ngFor="let item of authenticatedScreens"
+					class="nav-link"
+					[routerLink]="item.route"
+					routerLinkActive="active"
+					(click)="closeNavOnMobile()"
+				>
+					{{ item.label }}
+				</a>
+			</nav>
+
+			<nav class="nav-group nav-right" aria-label="Public screens">
+				<a
+					*ngFor="let item of publicScreens"
+					class="nav-link"
+					[routerLink]="item.route"
+					routerLinkActive="active"
+					(click)="closeNavOnMobile()"
+				>
+					{{ item.label }}
+				</a>
+			</nav>
+		</div>
 	</header>
 
 	<main class="app-content">
