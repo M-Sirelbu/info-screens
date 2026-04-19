@@ -56,6 +56,13 @@ const repository = new Repository(raceDuration, 10);
 
 let timer = undefined;
 
+function stopRaceTimer() {
+    if (timer !== undefined) {
+        clearInterval(timer);
+        timer = undefined;
+    }
+}
+
 if (!("NGROK_AUTHTOKEN" in env)) {
     console.error("NGROK_AUTHTOKEN environment variable not set. Please set it to your ngrok authtoken or to \"none\" to run locally.");
     console.error("Sign up for an account: https://dashboard.ngrok.com/signup");
@@ -132,12 +139,14 @@ io.on("connection", (socket) => {
         }
         callback({ status: status });
         if (args.flag === "finish") {
+            stopRaceTimer();
             repository.endRace();
+            repository.currentRace.remainingSeconds = 0;
             io.to("race-control")
             .to("lap-line-tracker")
             .to("leader-board")
             .emit("sessionStatus", { status: repository.currentRace.status });
-            repository.currentRace.remainingSeconds = 0;
+            io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {
@@ -150,13 +159,13 @@ io.on("connection", (socket) => {
         let result = repository.beginStartCountdown();
 
         if (result === "No session loaded") {
-            if (result === "No session loaded") {
-                if (repository.sessions.length === 0) {
-                    callback({ status: "No session loaded" });
-                    return;
-                }
+            const firstUpcomingSession = repository.sessions[0];
+            if (!firstUpcomingSession) {
+                callback({ status: "No session loaded" });
+                return;
             }
-            repository.loadSession(repository.sessions[0].sessionId);
+
+            repository.loadSession(firstUpcomingSession.sessionId);
             broadcastFlagChanged();
             broadcastSessionStatus();
             broadcastNextSession();
@@ -176,6 +185,7 @@ io.on("connection", (socket) => {
         }, (err, response) => {
             if (err) {
                 repository.countdownInProgress = false;
+                stopRaceTimer();
                 callback({ status: "Invalid Session Status" });
                 console.log("No clients responded to startCountdown event, aborting countdown");
                 return;
@@ -194,21 +204,28 @@ io.on("connection", (socket) => {
                 .to("leader-board")
                 .emit("sessionStatus", { status: repository.currentRace.status });
 
-                io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
+                io.to("leader-board").emit("sessionUpdate", {
                     sessionId: repository.currentRace.sessionId,
                     driverNames: repository.currentRace.driverNames,
                     carNumbers: repository.currentRace.carNumbers
                 });
                 timer = setInterval(() => {
+                    stopRaceTimer();
                     if (repository.currentRace.remainingSeconds < 0) {
                         repository.endRace();
+                        repository.currentRace.flag = "finish";
+                        repository.currentRace.remainingSeconds = 0;
+
                         io.to("race-control")
                         .to("lap-line-tracker")
                         .to("leader-board")
                         .emit("sessionStatus", { status: repository.currentRace.status });
-                        repository.currentRace.flag = "finish";
+
                         broadcastFlagChanged();
+                        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
+
                         clearInterval(timer);
+                        timer = undefined;
                     }
                     else {
                         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
@@ -225,6 +242,9 @@ io.on("connection", (socket) => {
         if (!socket.rooms.has("race-control")) {
             return;
         }
+
+        stopRaceTimer();
+
         if (repository.sessions.length < 2) {
             repository.addSession([], []);
         }
