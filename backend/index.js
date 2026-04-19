@@ -160,6 +160,7 @@ io.on("connection", (socket) => {
         if (args.flag === "finish") {
             repository.endRace();
             broadcastSessionStatus();
+            repository.currentRace.remainingSeconds = 0;
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {

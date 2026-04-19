@@ -1,4 +1,6 @@
 module.exports = function onConnection (socket, repository, room) {
+    let status = repository.currentRace.status;
+    status = status === "none" ? "finished" : status;
     switch (room) {
         case "leader-board":
             socket.emit("sessionUpdate", {
@@ -6,7 +8,7 @@ module.exports = function onConnection (socket, repository, room) {
                     driverNames: repository.currentRace.driverNames,
                     carNumbers: repository.currentRace.carNumbers
             });
-            socket.emit("sessionStatus", { status: repository.currentRace.status });
+            socket.emit("sessionStatus", { status: status });
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
             if (repository.currentRace.status !== "notStarted") {
                 socket.emit("lapTimes", {
@@ -37,7 +39,7 @@ module.exports = function onConnection (socket, repository, room) {
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
             break;
         case "lap-line-tracker":
-            socket.emit("sessionStatus", { status: repository.currentRace.status });
+            socket.emit("sessionStatus", { status: status });
             socket.emit("sessionUpdate", {
                 sessionId: repository.currentRace.sessionId,
                 driverNames: repository.currentRace.driverNames,
