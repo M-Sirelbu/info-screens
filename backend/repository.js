@@ -291,15 +291,13 @@ class Repository {
     addLap(carNumber) {
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
-                if (this.currentRace.completedLaps[i] === 0) {
-                    this.currentRace.completedLaps[i] = 1;
+                if (this.currentRace.lastLapStartTimes[i] === 0) {
                     this.currentRace.lastLapStartTimes[i] = Date.now();
                     return;
                 }
-
                 this.currentRace.completedLaps[i]++;
                 const lapTimeStamp = Date.now();
-                const lapTime = (lapTimeStamp - this.currentRace.lastLapStartTimes[i]) / 1000;
+                const lapTime = (lapTimeStamp - this.currentRace.lastLapStartTimes[i]);
                 this.currentRace.lastLapStartTimes[i] = lapTimeStamp;
                 if (this.currentRace.bestLapTime[i] === 0) {
                     this.currentRace.bestLapTime[i] = lapTime;
@@ -307,7 +305,6 @@ class Repository {
                 else if (this.currentRace.bestLapTime[i] > lapTime) {
                     this.currentRace.bestLapTime[i] = lapTime;
                 }
-                return;
             }
         } 
     }
