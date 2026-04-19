@@ -36,6 +36,10 @@
 			<p class="status-chip"><strong>Message:</strong> {{ message || '-' }}</p>
 		</div>
 
+		<section class="control-group" *ngIf="showNoActiveSession()">
+			<h2>No upcoming race sessions.</h2>
+		</section>
+
 		<section class="control-group" *ngIf="showRaceControls()">
 			<h2>Race</h2>
 			<button class="btn btn-primary" type="button" (click)="startRaceCountdown()" [disabled]="!canStartRace()">
@@ -66,6 +70,14 @@
 			<p class="session-ready">Race is in Finish mode. End the session when all cars are in pit lane.</p>
 			<button class="btn btn-danger" type="button" (click)="endSession()" [disabled]="!canEndSession()">
 				End Session
+			</button>
+		</section>
+
+		<section class="control-group" *ngIf="showStartSessionButton()">
+			<h2>Session</h2>
+			<p class="session-ready">A new session can be started.</p>
+			<button class="btn btn-danger" type="button" (click)="endSession()" [disabled]="!canEndSession()">
+				Start Session
 			</button>
 		</section>
 

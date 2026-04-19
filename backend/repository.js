@@ -1,13 +1,7 @@
 class Repository {
-    sessions = [
-        {
-            sessionId: 0,
-            driverNames: [],
-            carNumbers: []
-        }
-    ];
+    sessions = [];
     currentRace = {
-        status: "notStarted",
+        status: "none",
         sessionId: null,
         carNumbers: null,
         driverNames: null,
@@ -20,7 +14,7 @@ class Repository {
     defaultRaceDuration = null;
     defaultCountdownDuration = null;
     countdownInProgress = false;
-    lastSessionId = 0;
+    lastSessionId = -1;
     constructor(defaultRaceDuration, defaultCountdownDuration) {
         this.defaultRaceDuration = defaultRaceDuration;
         this.defaultCountdownDuration = defaultCountdownDuration;
@@ -56,6 +50,30 @@ class Repository {
             }
         }
         return "Session not found";
+    }
+
+    loadEmptySession() {
+        const oldSessionId = this.currentRace.sessionId;
+        this.currentRace = {
+            status: "none",
+            sessionId: null,
+            carNumbers: null,
+            driverNames: null,
+            completedLaps: null,
+            bestLapTime: null,
+            lastLapStartTimes: null,
+            flag: "red",
+            remainingSeconds: null
+        };
+        if (oldSessionId !== null) {
+            for (let i = 0; i < this.sessions.length; i++) {
+                if (this.sessions[i].sessionId === oldSessionId) {
+                    this.sessions.splice(i, 1);
+                break;
+                }
+            }
+        }
+        return "Success";
     }
 
     getSession(sessionId) {
@@ -116,7 +134,7 @@ class Repository {
             return;
         }
 
-        if (this.currentRace.status !== "finished") {
+        if (this.currentRace.status !== "finished" && this.currentRace.status !== "none") {
             return;
         }
 
@@ -199,6 +217,9 @@ class Repository {
             carNumbers: carNumbers
         });
         this.lastSessionId++;
+        if (this.sessions.length === 1) {
+            this.nextSessionId = this.sessions[0].sessionId;
+        }
     }
 
     updateSession(sessionId, driverNames, carNumbers) {

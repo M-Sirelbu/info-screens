@@ -22,7 +22,7 @@ export class NextRace implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   connected = false;
-  message = '';
+  message = 'No upcoming session available';
   nextSession: NextSessionPayload | null = null;
   showPaddockPrompt = false;
   private hasRaceProgressed = false;
@@ -75,6 +75,9 @@ export class NextRace implements OnInit, OnDestroy {
       if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
         this.message = '';
+        if (data.sessionId === -1) {
+          this.message = 'No upcoming session available';
+        }
 
         if (data.status === 'ended') {
           this.showPaddockPrompt = true;
@@ -82,6 +85,9 @@ export class NextRace implements OnInit, OnDestroy {
 
         this.cdr.detectChanges();
         return;
+      }
+      else {
+        this.message = 'No upcoming session available';
       }
 
       if (data && typeof data === 'object' && 'message' in data) {
