@@ -1,5 +1,7 @@
 .lap-line-tracker-screen {
-	align-content: center;
+	width: 100%;
+	padding: 1rem;
+	box-sizing: border-box;
 }
 
 .auth-screen {
@@ -43,17 +45,58 @@
 .tracker-board {
 	display: grid;
 	gap: 1rem;
+	padding: 0.5rem;
+}
+
+.status-grid {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: 1fr;
 }
 
 .lap-grid {
 	display: grid;
 	gap: 0.75rem;
-	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	grid-template-columns: 1fr;
+}
+
+.lap-grid > * {
+	min-width: 0;
+}
+
+@media (min-width: 768px) {
+	.status-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.lap-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	.lap-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+@media (min-width: 1280px) {
+	.lap-grid {
+		grid-template-columns: repeat(4, 1fr);
+	}
 }
 
 .lap-btn {
-	min-height: 92px;
+	min-height: 96px;
+	width: 100%;
+	padding: 1rem;
 	font-size: 1.25rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	touch-action: manipulation;
 }
 
 .auth-error {
