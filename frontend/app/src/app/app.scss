@@ -35,6 +35,7 @@
 	font-weight: 700;
 	cursor: pointer;
 }
+
 .nav-collapse {
 	display: contents;
 }
@@ -131,12 +132,14 @@
 
 	.nav-collapse.open {
 		display: grid;
+		grid-template-columns: 1fr;
 	}
 
 	.nav-group {
 		display: grid;
 		gap: 0.5rem;
-	}	
+		align-items: stretch;
+	}
 
 	.nav-left,
 	.nav-right {
