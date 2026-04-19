@@ -6,7 +6,6 @@ const { Server } = require('socket.io');
 const { env } = require('node:process');
 const Repository = require('./repository');
 const onConnection = require('./on_connection');
-const { clear } = require('node:console');
 
 const app = express();
 const server = http.createServer(app);
