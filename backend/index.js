@@ -115,7 +115,7 @@ function broadcastNextSession(skipNextRace = false) {
             session = loadedSession;
         }
     }
-    if (session.sessionId !== null) {
+    if (session !== null) {
         if (!skipNextRace) {
             io.to("next-race").emit("nextSessionUpdate", session);
         }

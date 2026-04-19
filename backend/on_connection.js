@@ -1,10 +1,6 @@
 module.exports = function onConnection (socket, repository, room) {
     const status = repository.currentRace.status;
-    let session = {
-        sessionId: -1,
-        driverNames: [],
-        carNumbers: []
-    }
+    let session = null;
     if (repository.sessions.length >= 2 && repository.currentRace.sessionId === repository.sessions[0].sessionId) {
         const loadedSession = repository.getSession(repository.sessions[1].sessionId);
         if (loadedSession !== null) {
@@ -35,7 +31,7 @@ module.exports = function onConnection (socket, repository, room) {
             }
             break;
         case "next-race":
-            if (session.sessionId !== -1) {
+            if (session !== null) {
                 socket.emit("nextSessionUpdate", session);
             } else {
                 socket.emit("nextSessionUpdate", { message: "No upcoming races" });
@@ -55,7 +51,7 @@ module.exports = function onConnection (socket, repository, room) {
         case "race-control":
             socket.emit("sessionStatus", { status: repository.currentRace.status });
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
-            if (session.sessionId !== -1) {
+            if (session !== null) {
                 socket.emit("nextSessionUpdate", session);
             } else {
                 socket.emit("nextSessionUpdate", { message: "No upcoming races" });
