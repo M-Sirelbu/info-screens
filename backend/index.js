@@ -137,6 +137,7 @@ io.on("connection", (socket) => {
             .to("lap-line-tracker")
             .to("leader-board")
             .emit("sessionStatus", { status: repository.currentRace.status });
+            repository.currentRace.remainingSeconds = 0;
         }
     });
     socket.on("raceStartCountdown", (args, callback) => {
@@ -205,6 +206,8 @@ io.on("connection", (socket) => {
                         .to("lap-line-tracker")
                         .to("leader-board")
                         .emit("sessionStatus", { status: repository.currentRace.status });
+                        repository.currentRace.flag = "finish";
+                        broadcastFlagChanged();
                         clearInterval(timer);
                     }
                     else {
