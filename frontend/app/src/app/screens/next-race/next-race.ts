@@ -25,7 +25,6 @@ export class NextRace implements OnInit, OnDestroy {
   message = 'No upcoming session available';
   nextSession: NextSessionPayload | null = null;
   showPaddockPrompt = false;
-  private hasRaceProgressed = false;
 
   ngOnInit(): void {
     this.socket = io();
@@ -50,24 +49,12 @@ export class NextRace implements OnInit, OnDestroy {
     });
 
     this.socket.on('sessionStatus', (args: { status: 'notStarted' | 'active' | 'finished' }) => {
-      if (args.status === 'active' || args.status === 'finished') {
-        this.hasRaceProgressed = true;
-      }
-
-      if (args.status === 'active') {
-        this.showPaddockPrompt = false;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      if (args.status === 'notStarted' && this.hasRaceProgressed) {
-        this.showPaddockPrompt = true;
-      }
+      this.showPaddockPrompt = args.status === 'finished';
       this.cdr.detectChanges();
     });
 
     this.socket.on('sessionEnded', () => {
-      this.showPaddockPrompt = true;
+      this.showPaddockPrompt = false;
       this.cdr.detectChanges();
     });
 
@@ -75,12 +62,6 @@ export class NextRace implements OnInit, OnDestroy {
       if (this.isNextSessionPayload(data)) {
         this.nextSession = data;
         this.message = '';
-        this.showPaddockPrompt = false;
-
-        if (data.status === 'ended') {
-          this.showPaddockPrompt = true;
-        }
-
         this.cdr.detectChanges();
         return;
       }
@@ -88,9 +69,6 @@ export class NextRace implements OnInit, OnDestroy {
       if (data && typeof data === 'object' && 'message' in data) {
         this.nextSession = null;
         this.message = String((data as { message?: string }).message ?? 'No upcoming races');
-        if (this.hasRaceProgressed) {
-          this.showPaddockPrompt = true;
-        }
         this.cdr.detectChanges();
         return;
       }

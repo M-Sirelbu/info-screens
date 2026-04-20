@@ -27,7 +27,7 @@ export class RaceControl implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   connected = false;
-  sessionStatus: SessionStatus = 'finished';
+  sessionStatus: SessionStatus = 'notStarted';
   currentFlag: RaceFlag | '' = '';
   message = '';
   authError = '';

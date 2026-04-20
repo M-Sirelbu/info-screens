@@ -56,6 +56,10 @@ const repository = new Repository(raceDuration, 10);
 
 let timer = undefined;
 
+function getEditableSessions() {
+    return repository.sessions.filter((session) => session.sessionId !== repository.currentRace.sessionId);
+}
+
 const timerTick = function() {
     if (repository.currentRace.remainingSeconds < 0) {
         repository.endRace();
@@ -81,7 +85,7 @@ if (env.NGROK_AUTHTOKEN !== "none") {
     	.then(listener => console.log(`Ingress established at: ${listener.url()}`));
 }
 function sessionsUpdated() {
-    io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+    io.to("front-desk").emit("sessionsUpdated", getEditableSessions());
 }
 
 function broadcastSessionStatus() {
@@ -192,7 +196,7 @@ io.on("connection", (socket) => {
             broadcastFlagChanged();
             broadcastSessionStatus();
             broadcastNextSession();
-            io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+            sessionsUpdated();
             io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
             result = repository.beginStartCountdown();
         }
@@ -272,7 +276,7 @@ io.on("connection", (socket) => {
         .to("leader-board")
         .emit("sessionStatus", { status: repository.currentRace.status });
 
-        io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+        sessionsUpdated();
 
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
     });
