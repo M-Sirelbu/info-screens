@@ -1,7 +1,7 @@
 class Repository {
     sessions = [];
     currentRace = {
-        status: "finished",
+        status: "notStarted",
         sessionId: null,
         carNumbers: null,
         driverNames: null,
@@ -55,7 +55,7 @@ class Repository {
     loadEmptySession() {
         const oldSessionId = this.currentRace.sessionId;
         this.currentRace = {
-            status: "finished",
+            status: "notStarted",
             sessionId: null,
             carNumbers: null,
             driverNames: null,
@@ -139,11 +139,13 @@ class Repository {
         }
 
         this.currentRace = {
-           status: "finished",
+           status: "notStarted",
            sessionId: null,
            carNumbers: null,
+           driverNames: null,
            completedLaps: null,
            bestLapTime: null,
+           lastLapStartTimes: null,
            flag: "red",
            remainingSeconds: null
        };
@@ -247,11 +249,15 @@ class Repository {
         if (sessionId === this.currentRace.sessionId) {
             return;
         }
+        const trimmedDriverName = String(driverName ?? "").trim();
+        if (trimmedDriverName === "") {
+            return;
+        }
         for (let i = 0; i < this.sessions.length; i++) {
             if (this.sessions[i].sessionId === sessionId) {
                 if (!(this.sessions[i].driverNames.length >= 8)) {
                     for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                        if (this.sessions[i].driverNames[j] === driverName) {
+                        if (this.sessions[i].driverNames[j] === trimmedDriverName) {
                             return;
                         }
                     }
@@ -264,7 +270,7 @@ class Repository {
                             }
                         }
                         if (!numberTaken) {
-                            this.sessions[i].driverNames.push(driverName);
+                            this.sessions[i].driverNames.push(trimmedDriverName);
                             this.sessions[i].carNumbers.push(carNumber);
                             return;
                         }
@@ -278,14 +284,23 @@ class Repository {
         if (sessionId === this.currentRace.sessionId) {
             return;
         }
+        const trimmedNewName = String(newName ?? "").trim();
+        if (trimmedNewName === "") {
+            return;
+        }
         for (let i = 0; i < this.sessions.length; i++) {
             if (this.sessions[i].sessionId === sessionId) {
+                const driverIndex = this.sessions[i].driverNames.indexOf(driverName);
+                if (driverIndex === -1) {
+                    return;
+                }
                 for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                    if (this.sessions[i].driverNames[j] === driverName) {
-                        this.sessions[i].driverNames[j] = newName;
+                    if (j !== driverIndex && this.sessions[i].driverNames[j] === trimmedNewName) {
                         return;
                     }
                 }
+                this.sessions[i].driverNames[driverIndex] = trimmedNewName;
+                return;
             }
         }
     }
@@ -333,4 +348,3 @@ class Repository {
 }
 
 module.exports = Repository;
-
