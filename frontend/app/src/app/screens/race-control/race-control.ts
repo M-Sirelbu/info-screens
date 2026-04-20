@@ -157,7 +157,7 @@ export class RaceControl implements OnInit, OnDestroy {
   }
 
   canEndSession(): boolean {
-    return this.connected && this.sessionStatus === 'finished' && this.nextSessionMessage === '';
+    return this.connected && this.sessionStatus === 'finished';
   }
 
   showRaceControls(): boolean {
