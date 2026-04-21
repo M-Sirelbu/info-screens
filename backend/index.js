@@ -83,7 +83,10 @@ if (env.NGROK_AUTHTOKEN !== "none") {
     	.then(listener => console.log(`Ingress established at: ${listener.url()}`));
 }
 function sessionsUpdated() {
-    io.to("front-desk").emit("sessionsUpdated", repository.sessions);
+    const sessions = repository.sessions.filter(
+        (s) => s.sessionId !== repository.currentRace.sessionId
+    );
+    io.to("front-desk").emit("sessionsUpdated", sessions);
 }
 
 function broadcastSessionStatus() {
