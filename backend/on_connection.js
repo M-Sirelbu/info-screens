@@ -43,10 +43,7 @@ module.exports = function onConnection (socket, repository, room) {
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
             break;
         case "front-desk":
-            socket.emit(
-                "sessionsUpdated",
-                repository.sessions.filter((session) => session.sessionId !== repository.currentRace.sessionId)
-            );
+            socket.emit("sessionsUpdated", repository.sessions);
             if (repository.currentRace.sessionId !== null) {
                 socket.emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
             }
