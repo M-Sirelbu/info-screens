@@ -61,7 +61,9 @@ function getEditableSessions() {
 }
 
 const timerTick = function() {
-    if (repository.currentRace.remainingSeconds < 0) {
+    if (repository.currentRace.remainingSeconds <= 0) {
+        repository.currentRace.remainingSeconds = 0;
+        io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         repository.endRace();
         broadcastSessionStatus();
         broadcastFlagChanged();
@@ -89,7 +91,7 @@ function sessionsUpdated() {
 }
 
 function broadcastSessionStatus() {
-    let sessionStatus = repository.currentRace.status;
+    const sessionStatus = repository.currentRace.status;
     io.to("race-control").emit("sessionStatus", { status: sessionStatus });
     io.to("lap-line-tracker").emit("sessionStatus", { status: sessionStatus });
     io.to("leader-board").emit("sessionStatus", { status: sessionStatus });
@@ -210,6 +212,12 @@ io.on("connection", (socket) => {
         io.timeout(5000).to("race-countdown").emit("startCountdown", {
             duration: repository.defaultCountdownDuration
         }, (err, response) => {
+            if (err) {
+                repository.countdownInProgress = false;
+                callback({ status: "Invalid Session Status" });
+                console.log("No clients responded to startCountdown event, aborting countdown");
+                return;
+            }            
             callback({ status: "Success" })
             setTimeout(() => {
                 repository.countdownInProgress = false;
@@ -234,9 +242,12 @@ io.on("connection", (socket) => {
         if (!socket.rooms.has("race-control")) {
             return;
         }
+        if (repository.currentRace.status !== "finished") {
+            return;
+        }        
 
         if (repository.sessions.length < 2) {
-            // Load a non-functional session of id -1 into currentRace
+            // Reset current race into empty no-active-session state
             repository.loadEmptySession();
             if (repository.sessions.length === 0) {
                 // In loading session, old stale session will be deleted, so everything needs to be updated.
@@ -265,16 +276,6 @@ io.on("connection", (socket) => {
             driverNames: repository.currentRace.driverNames,
             carNumbers: repository.currentRace.carNumbers
         });
-
-        io.to("race-control")
-        .to("leader-board")
-        .to("race-flags")
-        .emit("flagChanged", { flag: repository.currentRace.flag });
-            
-        io.to("race-control")
-        .to("lap-line-tracker")
-        .to("leader-board")
-        .emit("sessionStatus", { status: repository.currentRace.status });
 
         sessionsUpdated();
 
@@ -326,7 +327,10 @@ io.on("connection", (socket) => {
         if (!socket.rooms.has("lap-line-tracker")) {
             return;
         }
-        repository.addLap(args.carNumber);
+        const status = repository.addLap(args.carNumber);
+        if (status !== "Success") {
+            return;
+        }
         io.to("leader-board").emit("lapTimes", {
             carNumbers: repository.currentRace.carNumbers,
             completedLaps: repository.currentRace.completedLaps,

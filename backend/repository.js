@@ -195,8 +195,16 @@ class Repository {
         return "Success";
     }
     endRace() {
+        if (this.currentRace.sessionId === null) {
+            return "No session loaded";
+        }
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
+        }        
         this.currentRace.status = "finished";
         this.currentRace.flag = "finish";
+        this.countdownInProgress = false;
+        return "Success";        
     }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
@@ -323,12 +331,24 @@ class Repository {
     }
 
     addLap(carNumber) {
+
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
+        }
+
+        if (!Array.isArray(this.currentRace.carNumbers) ||
+            !Array.isArray(this.currentRace.completedLaps) ||
+            !Array.isArray(this.currentRace.bestLapTime) ||
+            !Array.isArray(this.currentRace.lastLapStartTimes)) {
+            return "No session loaded";
+        }        
+
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
                 if (this.currentRace.completedLaps[i] === 0) {
                     this.currentRace.completedLaps[i] = 1;
                     this.currentRace.lastLapStartTimes[i] = Date.now();
-                    return;
+                    return "Success";
                 }
                 this.currentRace.completedLaps[i]++;
                 const lapTimeStamp = Date.now();
@@ -340,8 +360,10 @@ class Repository {
                 else if (this.currentRace.bestLapTime[i] > lapTime) {
                     this.currentRace.bestLapTime[i] = lapTime;
                 }
+                return "Success";
             }
         } 
+        return "Car not found";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
