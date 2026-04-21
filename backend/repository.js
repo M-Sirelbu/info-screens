@@ -313,6 +313,37 @@ class Repository {
         }
     }
 
+    updateDriverCar(sessionId, driverName, newCarNumber) {
+        if (sessionId === this.currentRace.sessionId) {
+            return "Session locked";
+        }
+
+        const parsedCarNumber = Number(newCarNumber);
+        if (!Number.isInteger(parsedCarNumber) || parsedCarNumber < 1 || parsedCarNumber > 8) {
+            return "Invalid car number";
+        }
+
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                const driverIndex = this.sessions[i].driverNames.indexOf(driverName);
+                if (driverIndex === -1) {
+                    return "Driver not found";
+                }
+
+                for (let j = 0; j < this.sessions[i].carNumbers.length; j++) {
+                    if (j !== driverIndex && this.sessions[i].carNumbers[j] === parsedCarNumber) {
+                        return "Car already taken";
+                    }
+                }
+
+                this.sessions[i].carNumbers[driverIndex] = parsedCarNumber;
+                return "Success";
+            }
+        }
+
+        return "Session not found";
+    }
+
     deleteDriver(sessionId, driverName) {
         if (sessionId === this.currentRace.sessionId) {
             return;

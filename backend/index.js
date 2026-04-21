@@ -322,6 +322,25 @@ io.on("connection", (socket) => {
         broadcastNextSession();
     });
 
+    socket.on("driverCarEdited", (args) => {
+        if (!socket.rooms.has("front-desk")) {
+            return;
+        }
+
+        const status = repository.updateDriverCar(
+            args.sessionId,
+            args.driverName,
+            args.carNumber
+        );
+
+        if (status !== "Success") {
+            return;
+        }
+
+        sessionsUpdated();
+        broadcastNextSession();
+    });
+
     socket.on("lap", (args) => {
         if (!socket.rooms.has("lap-line-tracker")) {
             return;
