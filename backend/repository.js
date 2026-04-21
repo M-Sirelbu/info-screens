@@ -265,7 +265,7 @@ class Repository {
             if (this.sessions[i].sessionId === sessionId) {
                 if (!(this.sessions[i].driverNames.length >= 8)) {
                     for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                        if (this.sessions[i].driverNames[j] === trimmedDriverName) {
+                        if (this.sessions[i].driverNames[j].toLowerCase() === trimmedDriverName.toLowerCase()) {
                             return;
                         }
                     }
@@ -303,7 +303,7 @@ class Repository {
                     return;
                 }
                 for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                    if (j !== driverIndex && this.sessions[i].driverNames[j] === trimmedNewName) {
+                    if (j !== driverIndex && this.sessions[i].driverNames[j].toLowerCase() === trimmedNewName.toLowerCase()) {
                         return;
                     }
                 }
