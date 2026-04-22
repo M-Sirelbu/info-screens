@@ -294,15 +294,16 @@ class Repository {
         if (sessionId === this.currentRace.sessionId) {
             return;
         }
-        const trimmedDriverName = String(driverName ?? "").trim();
-        if (trimmedDriverName === "") {
+        const normalizedName = String(driverName ?? "").trim().toLowerCase();
+        if (normalizedName === "") {
             return;
         }
+
         for (let i = 0; i < this.sessions.length; i++) {
             if (this.sessions[i].sessionId === sessionId) {
                 if (!(this.sessions[i].driverNames.length >= 8)) {
                     for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                        if (this.sessions[i].driverNames[j].toLowerCase() === trimmedDriverName.toLowerCase()) {
+                        if (this.sessions[i].driverNames[j].toLowerCase() === normalizedName) {
                             return;
                         }
                     }
@@ -315,7 +316,7 @@ class Repository {
                             }
                         }
                         if (!numberTaken) {
-                            this.sessions[i].driverNames.push(trimmedDriverName);
+                            this.sessions[i].driverNames.push(normalizedName);
                             this.sessions[i].carNumbers.push(carNumber);
                             this.saveState();
                             return;
