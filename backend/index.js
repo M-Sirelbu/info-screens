@@ -232,6 +232,12 @@ io.on("connection", (socket) => {
                     carNumbers: repository.currentRace.carNumbers
                 });
 
+                io.to("leader-board").emit("lapTimes", {
+                    carNumbers: repository.currentRace.carNumbers,
+                    completedLaps: repository.currentRace.completedLaps,
+                    bestLapTime: repository.currentRace.bestLapTime
+                });
+
                 clearInterval(timer);
                 timer = setInterval(timerTick, 1000);
             }, repository.defaultCountdownDuration * 1000)
@@ -274,6 +280,12 @@ io.on("connection", (socket) => {
             sessionId: repository.currentRace.sessionId,
             driverNames: repository.currentRace.driverNames,
             carNumbers: repository.currentRace.carNumbers
+        });
+
+        io.to("leader-board").emit("lapTimes", {
+            carNumbers: repository.currentRace.carNumbers,
+            completedLaps: repository.currentRace.completedLaps,
+            bestLapTime: repository.currentRace.bestLapTime
         });
 
         sessionsUpdated();
