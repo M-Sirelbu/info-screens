@@ -37,10 +37,18 @@ export class LeaderBoard implements OnInit, OnDestroy {
 
   get sortedEntries(): LeaderboardEntry[] {
     return [...this.entries].sort((a, b) => {
-      if (a.bestLapTime === 0 && b.bestLapTime === 0) return 0;
+      if (a.completedLaps !== b.completedLaps) {
+        return b.completedLaps - a.completedLaps;
+      }
+      if (a.bestLapTime === 0 && b.bestLapTime === 0) {
+        return a.carNumber - b.carNumber;
+      }
       if (a.bestLapTime === 0) return 1;
       if (b.bestLapTime === 0) return -1;
-      return a.bestLapTime - b.bestLapTime;
+      if (a.bestLapTime !== b.bestLapTime) {
+        return a.bestLapTime - b.bestLapTime;
+      }
+      return a.carNumber - b.carNumber;
     });
   }
 
