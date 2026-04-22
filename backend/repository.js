@@ -195,8 +195,16 @@ class Repository {
         return "Success";
     }
     endRace() {
+        if (this.currentRace.sessionId === null) {
+            return "No session loaded";
+        }
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
+        }        
         this.currentRace.status = "finished";
         this.currentRace.flag = "finish";
+        this.countdownInProgress = false;
+        return "Success";        
     }
     beginStartCountdown() {
         if (this.currentRace.sessionId === null) {
@@ -257,7 +265,7 @@ class Repository {
             if (this.sessions[i].sessionId === sessionId) {
                 if (!(this.sessions[i].driverNames.length >= 8)) {
                     for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                        if (this.sessions[i].driverNames[j] === trimmedDriverName) {
+                        if (this.sessions[i].driverNames[j].toLowerCase() === trimmedDriverName.toLowerCase()) {
                             return;
                         }
                     }
@@ -295,7 +303,7 @@ class Repository {
                     return;
                 }
                 for (let j = 0; j < this.sessions[i].driverNames.length; j++) {
-                    if (j !== driverIndex && this.sessions[i].driverNames[j] === trimmedNewName) {
+                    if (j !== driverIndex && this.sessions[i].driverNames[j].toLowerCase() === trimmedNewName.toLowerCase()) {
                         return;
                     }
                 }
@@ -303,6 +311,37 @@ class Repository {
                 return;
             }
         }
+    }
+
+    updateDriverCar(sessionId, driverName, newCarNumber) {
+        if (sessionId === this.currentRace.sessionId) {
+            return "Session locked";
+        }
+
+        const parsedCarNumber = Number(newCarNumber);
+        if (!Number.isInteger(parsedCarNumber) || parsedCarNumber < 1 || parsedCarNumber > 8) {
+            return "Invalid car number";
+        }
+
+        for (let i = 0; i < this.sessions.length; i++) {
+            if (this.sessions[i].sessionId === sessionId) {
+                const driverIndex = this.sessions[i].driverNames.indexOf(driverName);
+                if (driverIndex === -1) {
+                    return "Driver not found";
+                }
+
+                for (let j = 0; j < this.sessions[i].carNumbers.length; j++) {
+                    if (j !== driverIndex && this.sessions[i].carNumbers[j] === parsedCarNumber) {
+                        return "Car already taken";
+                    }
+                }
+
+                this.sessions[i].carNumbers[driverIndex] = parsedCarNumber;
+                return "Success";
+            }
+        }
+
+        return "Session not found";
     }
 
     deleteDriver(sessionId, driverName) {
@@ -323,12 +362,24 @@ class Repository {
     }
 
     addLap(carNumber) {
+
+        if (this.currentRace.status !== "active") {
+            return "Race not Active";
+        }
+
+        if (!Array.isArray(this.currentRace.carNumbers) ||
+            !Array.isArray(this.currentRace.completedLaps) ||
+            !Array.isArray(this.currentRace.bestLapTime) ||
+            !Array.isArray(this.currentRace.lastLapStartTimes)) {
+            return "No session loaded";
+        }        
+
         for (let i = 0; i < this.currentRace.carNumbers.length; i++) {
             if (this.currentRace.carNumbers[i] === carNumber) {
                 if (this.currentRace.completedLaps[i] === 0) {
                     this.currentRace.completedLaps[i] = 1;
                     this.currentRace.lastLapStartTimes[i] = Date.now();
-                    return;
+                    return "Success";
                 }
                 this.currentRace.completedLaps[i]++;
                 const lapTimeStamp = Date.now();
@@ -340,8 +391,10 @@ class Repository {
                 else if (this.currentRace.bestLapTime[i] > lapTime) {
                     this.currentRace.bestLapTime[i] = lapTime;
                 }
+                return "Success";
             }
         } 
+        return "Car not found";
     }
 
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
