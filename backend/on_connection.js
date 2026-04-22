@@ -1,5 +1,9 @@
 module.exports = function onConnection (socket, repository, room) {
     const status = repository.currentRace.status;
+    const countdownRemainingSeconds =
+        repository.countdownInProgress && repository.countdownEndsAt !== null
+            ? Math.max(0, Math.ceil((repository.countdownEndsAt - Date.now()) / 1000))
+            : null;    
     let session = null;
     if (repository.sessions.length >= 2 && repository.currentRace.sessionId === repository.sessions[0].sessionId) {
         const loadedSession = repository.getSession(repository.sessions[1].sessionId);
@@ -38,6 +42,11 @@ module.exports = function onConnection (socket, repository, room) {
             }
             break;
         case "race-countdown":
+            if (countdownRemainingSeconds !== null && countdownRemainingSeconds > 0) {
+                socket.emit("startCountdown", {
+                    duration: countdownRemainingSeconds
+                });
+            }            
             break;
         case "race-flags":
             socket.emit("flagChanged", { flag: repository.currentRace.flag });
