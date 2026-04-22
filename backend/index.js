@@ -259,6 +259,7 @@ io.on("connection", (socket) => {
                 broadcastFlagChanged();
                 broadcastSessionStatus();
                 broadcastNextSession();
+                sessionsUpdated();
                 return;
             }
         }
@@ -287,8 +288,6 @@ io.on("connection", (socket) => {
             completedLaps: repository.currentRace.completedLaps,
             bestLapTime: repository.currentRace.bestLapTime
         });
-
-        sessionsUpdated();
 
         io.to("front-desk").emit("sessionStarted", { sessionId: repository.currentRace.sessionId });
     });
