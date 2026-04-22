@@ -61,6 +61,7 @@ const timerTick = function() {
         repository.currentRace.remainingSeconds = 0;
         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         repository.endRace();
+        repository.saveState();
         broadcastSessionStatus();
         broadcastFlagChanged();
         clearInterval(timer);
@@ -69,6 +70,99 @@ const timerTick = function() {
     else {
         io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         repository.currentRace.remainingSeconds--;
+        repository.saveState();
+    }
+}
+
+recoverRaceState();
+
+// push restored state to clients
+setTimeout(() => {
+    broadcastSessionStatus();
+    broadcastFlagChanged();
+
+    if (repository.currentRace.remainingSeconds !== null) {
+        io.to("leader-board").emit("timerTick", {
+            remainingSeconds: repository.currentRace.remainingSeconds
+        });
+    }
+}, 100);
+
+function startRaceTimer() {
+    clearInterval(timer);
+    timer = setInterval(timerTick, 1000);
+}
+
+function recoverRaceState() {
+    if (repository.currentRace.status === "active" && repository.raceEndsAt !== null) {
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil((repository.raceEndsAt - Date.now()) / 1000)
+        );
+
+        repository.currentRace.remainingSeconds = remainingSeconds;
+
+        if (remainingSeconds <= 0) {
+            repository.endRace();
+            repository.saveState();
+        } else {
+            startRaceTimer();
+        }
+    }
+
+    if (repository.countdownInProgress && repository.countdownEndsAt !== null) {
+        const countdownRemainingSeconds = Math.max(
+            0,
+            Math.ceil((repository.countdownEndsAt - Date.now()) / 1000)
+        );
+
+        if (countdownRemainingSeconds <= 0) {
+            repository.startRace();
+            broadcastFlagChanged();
+            broadcastSessionStatus();
+            broadcastNextSession();
+
+            io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
+                sessionId: repository.currentRace.sessionId,
+                driverNames: repository.currentRace.driverNames,
+                carNumbers: repository.currentRace.carNumbers
+            });
+
+            io.to("leader-board").emit("lapTimes", {
+                carNumbers: repository.currentRace.carNumbers,
+                completedLaps: repository.currentRace.completedLaps,
+                bestLapTime: repository.currentRace.bestLapTime
+            });            
+            startRaceTimer();
+        } else {
+            io.to("race-countdown").emit("startCountdown", {
+                duration: countdownRemainingSeconds
+            });            
+            setTimeout(() => {
+                if (!repository.countdownInProgress) return;
+                
+                repository.countdownInProgress = false;
+                repository.startRace();
+
+                broadcastFlagChanged();
+                broadcastSessionStatus();
+                broadcastNextSession();
+
+                io.to("leader-board").to("lap-line-tracker").emit("sessionUpdate", {
+                    sessionId: repository.currentRace.sessionId,
+                    driverNames: repository.currentRace.driverNames,
+                    carNumbers: repository.currentRace.carNumbers
+                });
+
+                io.to("leader-board").emit("lapTimes", {
+                    carNumbers: repository.currentRace.carNumbers,
+                    completedLaps: repository.currentRace.completedLaps,
+                    bestLapTime: repository.currentRace.bestLapTime
+                });
+
+                startRaceTimer();
+            }, countdownRemainingSeconds * 1000);            
+        }
     }
 }
 
@@ -176,6 +270,7 @@ io.on("connection", (socket) => {
             repository.endRace();
             broadcastSessionStatus();
             repository.currentRace.remainingSeconds = 0;
+            repository.saveState();
             io.to("leader-board").emit("timerTick", { remainingSeconds: repository.currentRace.remainingSeconds });
         }
     });
@@ -213,6 +308,8 @@ io.on("connection", (socket) => {
         }, (err, response) => {
             if (err) {
                 repository.countdownInProgress = false;
+                repository.countdownEndsAt = null;
+                repository.saveState();                
                 callback({ status: "Invalid Session Status" });
                 console.log("No clients responded to startCountdown event, aborting countdown");
                 return;
@@ -238,8 +335,7 @@ io.on("connection", (socket) => {
                     bestLapTime: repository.currentRace.bestLapTime
                 });
 
-                clearInterval(timer);
-                timer = setInterval(timerTick, 1000);
+                startRaceTimer();
             }, repository.defaultCountdownDuration * 1000)
         });
     });
