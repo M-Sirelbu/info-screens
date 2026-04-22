@@ -1,3 +1,4 @@
+const { readState, writeState } = require("./state_store");
 class Repository {
     sessions = [];
     currentRace = {
@@ -15,9 +16,18 @@ class Repository {
     defaultCountdownDuration = null;
     countdownInProgress = false;
     lastSessionId = -1;
+    raceEndsAt = null;
+    countdownEndsAt = null;    
     constructor(defaultRaceDuration, defaultCountdownDuration) {
         this.defaultRaceDuration = defaultRaceDuration;
         this.defaultCountdownDuration = defaultCountdownDuration;
+        const state = readState();
+        this.sessions = state.sessions;
+        this.currentRace = state.currentRace;
+        this.lastSessionId = state.lastSessionId;
+        this.countdownInProgress = state.countdownInProgress;
+        this.raceEndsAt = state.raceEndsAt;
+        this.countdownEndsAt = state.countdownEndsAt;        
     }
     loadSession(sessionId) {
         const oldSessionId = this.currentRace.sessionId;
@@ -33,6 +43,8 @@ class Repository {
                 this.currentRace.status = "notStarted";
                 this.currentRace.flag = "red";
                 this.countdownInProgress = false;
+                this.raceEndsAt = null;
+                this.countdownEndsAt = null;                
                 for (let i = 0; i < session.carNumbers.length; i++) {
                     this.currentRace.completedLaps.push(0);
                     this.currentRace.bestLapTime.push(0);
@@ -46,6 +58,7 @@ class Repository {
                         }
                     }
                 }
+                this.saveState();
                 return "Success";
             }
         }
@@ -65,6 +78,9 @@ class Repository {
             flag: "red",
             remainingSeconds: null
         };
+        this.countdownInProgress = false;
+        this.raceEndsAt = null;
+        this.countdownEndsAt = null;        
         if (oldSessionId !== null) {
             for (let i = 0; i < this.sessions.length; i++) {
                 if (this.sessions[i].sessionId === oldSessionId) {
@@ -73,6 +89,7 @@ class Repository {
                 }
             }
         }
+        this.saveState();
         return "Success";
     }
 
@@ -94,10 +111,14 @@ class Repository {
         this.currentRace.status = "active";
         this.currentRace.flag = "green";
         this.currentRace.remainingSeconds = this.defaultRaceDuration;
+        this.countdownInProgress = false;
+        this.countdownEndsAt = null;
+        this.raceEndsAt = Date.now() + this.defaultRaceDuration * 1000;        
         const raceStartTimestamp = 0;
         for (let i = 0; i < this.currentRace.lastLapStartTimes.length; i++) {
             this.currentRace.lastLapStartTimes[i] = raceStartTimestamp;
         }
+        this.saveState();
         return {
             status: "Success",
             race: this.currentRace
@@ -122,7 +143,10 @@ class Repository {
         this.currentRace.status = "finished";
         this.currentRace.flag = "finish";
         this.countdownInProgress = false;
-
+        this.raceEndsAt = null;
+        this.countdownEndsAt = null;
+ 
+        this.saveState();
         return {
             status: "Success",
             race: this.currentRace
@@ -150,7 +174,10 @@ class Repository {
            remainingSeconds: null
        };
        this.countdownInProgress = false;
-
+       this.raceEndsAt = null;
+       this.countdownEndsAt = null;
+ 
+       this.saveState();
        return {
            status: "Success",
            race: this.currentRace
@@ -192,6 +219,7 @@ class Repository {
 
         this.currentRace.flag = flag;
 
+        this.saveState();
         return "Success";
     }
     endRace() {
@@ -204,6 +232,9 @@ class Repository {
         this.currentRace.status = "finished";
         this.currentRace.flag = "finish";
         this.countdownInProgress = false;
+        this.raceEndsAt = null;
+        this.countdownEndsAt = null;
+        this.saveState();        
         return "Success";        
     }
     beginStartCountdown() {
@@ -217,6 +248,8 @@ class Repository {
             return "Countdown in Progress"
         }
         this.countdownInProgress = true;
+        this.countdownEndsAt = Date.now() + this.defaultCountdownDuration * 1000;
+        this.saveState();
 
         return "Success";
     }
@@ -228,6 +261,7 @@ class Repository {
             carNumbers: carNumbers
         });
         this.lastSessionId++;
+        this.saveState();
     }
 
     updateSession(sessionId, driverNames, carNumbers) {
@@ -238,6 +272,7 @@ class Repository {
             if (this.sessions[i].sessionId === sessionId) {
                 this.sessions[i].driverNames = driverNames;
                 this.sessions[i].carNumbers = carNumbers;
+                this.saveState();
             }
         }
     }
@@ -249,6 +284,8 @@ class Repository {
         for (let i = 0; i < this.sessions.length; i++) {
             if (this.sessions[i].sessionId === sessionId) {
                 this.sessions.splice(i, 1);
+                this.saveState();
+                return;                
             }
         }
     }
@@ -280,6 +317,7 @@ class Repository {
                         if (!numberTaken) {
                             this.sessions[i].driverNames.push(trimmedDriverName);
                             this.sessions[i].carNumbers.push(carNumber);
+                            this.saveState();
                             return;
                         }
                     }
@@ -308,6 +346,7 @@ class Repository {
                     }
                 }
                 this.sessions[i].driverNames[driverIndex] = trimmedNewName;
+                this.saveState();
                 return;
             }
         }
@@ -337,6 +376,7 @@ class Repository {
                 }
 
                 this.sessions[i].carNumbers[driverIndex] = parsedCarNumber;
+                this.saveState();
                 return "Success";
             }
         }
@@ -354,6 +394,8 @@ class Repository {
                     if (this.sessions[i].driverNames[j] === driverName) {
                         this.sessions[i].driverNames.splice(j, 1);
                         this.sessions[i].carNumbers.splice(j, 1);
+                        this.saveState();
+                        return;                        
                     }
                 }
             }
@@ -379,6 +421,7 @@ class Repository {
                 if (this.currentRace.completedLaps[i] === 0) {
                     this.currentRace.completedLaps[i] = 1;
                     this.currentRace.lastLapStartTimes[i] = Date.now();
+                    this.saveState();
                     return "Success";
                 }
                 this.currentRace.completedLaps[i]++;
@@ -391,12 +434,23 @@ class Repository {
                 else if (this.currentRace.bestLapTime[i] > lapTime) {
                     this.currentRace.bestLapTime[i] = lapTime;
                 }
+                this.saveState();
                 return "Success";
             }
         } 
         return "Car not found";
     }
 
+    saveState() {
+        writeState({
+            sessions: this.sessions,
+            currentRace: this.currentRace,
+            lastSessionId: this.lastSessionId,
+            countdownInProgress: this.countdownInProgress,
+            raceEndsAt: this.raceEndsAt,
+            countdownEndsAt: this.countdownEndsAt
+        });
+    }
      // addSession, updateSession, addDriver, updateDriver, deleteDriver, etc have to be implemented
 }
 
