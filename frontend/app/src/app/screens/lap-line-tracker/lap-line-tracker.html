@@ -48,7 +48,11 @@
         </button>
       </div>
 
-      <p *ngIf="!canRecordLaps" class="muted">
+      <p *ngIf="!canRecordLaps && currentFlag === 'red' && sessionStatus !== 'notStarted'" class="muted">
+        Lap buttons are disabled during Danger mode to prevent wrong inputs.
+      </p>
+
+      <p *ngIf="!canRecordLaps && (sessionStatus === 'notStarted')" class="muted">
         Lap buttons are disabled until race status is active or finished.
       </p>
 
