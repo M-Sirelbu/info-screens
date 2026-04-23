@@ -12,7 +12,11 @@
 
     <div class="status-grid">
       <p class="status-chip"><strong>Time:</strong> {{ formatTime(remainingSeconds) }}</p>
-      <p class="status-chip"><strong>Flag:</strong> {{ currentFlag ?? 'none' }}</p>
+      <p class="status-chip">
+        <strong>Flag:</strong>
+        <span class="flag-indicator" [class]="'flag-indicator flag-' + (currentFlag ?? 'none')"></span>
+        {{ currentFlag ?? 'none' }}
+      </p>
       <p class="status-chip"><strong>Status:</strong> {{ sessionStatus }}</p>
     </div>
 
