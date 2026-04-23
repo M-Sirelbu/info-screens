@@ -57,10 +57,12 @@ export class LapLineTracker implements OnInit, OnDestroy {
     this.socket.on('connect', () => {
       this.isConnected = true;
 
-      if (this.pendingLogin) {
+      if (this.pendingLogin || (this.accessKey && !this.isAuthenticated)) {
         this.pendingLogin = false;
         this.joinLapLineRoom();
       }
+
+      this.cdr.detectChanges();
     });
 
     this.socket.on('disconnect', () => {
@@ -118,7 +120,12 @@ export class LapLineTracker implements OnInit, OnDestroy {
     });
 
     if (this.accessKey) {
-      this.connect();
+      this.pendingLogin = true;
+      this.isConnecting = true;
+      this.authError = '';
+      this.statusMessage = 'Connecting...';
+      this.startLoginTimeout();
+      this.socket.connect();
     }
   }
 
@@ -130,10 +137,9 @@ export class LapLineTracker implements OnInit, OnDestroy {
   }
 
   connect(): void {
-
     const trimmedAccessKey = this.accessKey.trim();
 
-    if (!this.accessKey.trim() || this.isConnecting) {
+    if (!trimmedAccessKey || this.isConnecting) {
       return;
     }
 
@@ -146,6 +152,7 @@ export class LapLineTracker implements OnInit, OnDestroy {
     this.startLoginTimeout();
 
     if (this.socket.connected) {
+      this.pendingLogin = false;
       this.joinLapLineRoom();
       return;
     }
