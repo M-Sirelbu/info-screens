@@ -12,7 +12,7 @@ interface Session {
   sessionId: number;
   driverNames: string[];
   carNumbers: number[];
-  locked?: boolean; 
+  locked?: boolean;
 }
 
 @Component({
@@ -29,6 +29,7 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private readonly lockedSessionIds = new Set<number>();
   private cdr = inject(ChangeDetectorRef);
+  private readonly storageKey = 'front-desk-access-key';
 
   sessions: Session[] = [];
   accessKey: string = '';
@@ -42,7 +43,12 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   readonly carOptions: number[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
   ngOnInit(): void {
+    this.accessKey = localStorage.getItem(this.storageKey) ?? '';
     this.initSocket();
+
+    if (this.accessKey) {
+      this.login();
+    }
   }
 
   ngOnDestroy(): void {
@@ -105,7 +111,13 @@ export class FrontDeskComponent implements OnInit, OnDestroy {
   }
 
   login(): void {
+
+    const trimmedAccessKey = this.accessKey.trim();
+
     if (!this.accessKey.trim() || this.isConnecting) return;
+
+    this.accessKey = trimmedAccessKey;
+    localStorage.setItem(this.storageKey, this.accessKey);
 
     this.isConnecting = true;
     this.authError = '';
