@@ -55,9 +55,10 @@ export class LapLineTracker implements OnInit, OnDestroy {
     });
 
     this.socket.on('connect', () => {
-      if (this.pendingLogin || this.isAuthenticated) {
+      this.isConnected = true;
+
+      if (this.pendingLogin) {
         this.pendingLogin = false;
-        this.isConnected = true;
         this.joinLapLineRoom();
       }
     });
@@ -115,6 +116,10 @@ export class LapLineTracker implements OnInit, OnDestroy {
       this.applyCarNumbers(args.carNumbers);
       this.cdr.detectChanges();
     });
+
+    if (this.accessKey) {
+      this.connect();
+    }
   }
 
   ngOnDestroy(): void {
