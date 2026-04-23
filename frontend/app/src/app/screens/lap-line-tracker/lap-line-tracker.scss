@@ -104,3 +104,13 @@
 	color: #ff9eab;
 	font-weight: 600;
 }
+
+.lap-btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	filter: grayscale(0.2);
+}
+
+.lap-btn:disabled:hover {
+	transform: none;
+}

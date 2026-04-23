@@ -16,6 +16,31 @@
 	font-weight: 600;
 }
 
+.flag-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 6px;
+  background: gray;
+}
+
+.flag-green {
+  background: #22c55e;
+}
+
+.flag-yellow {
+  background: #eab308;
+}
+
+.flag-red {
+  background: #ef4444;
+}
+
+.flag-finish {
+  background: #3b82f6;
+}
+
 @media (max-width: 720px) {
 	.header-row {
 		flex-direction: column;
