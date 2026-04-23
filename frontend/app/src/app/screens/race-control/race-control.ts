@@ -25,6 +25,7 @@ export class RaceControl implements OnInit, OnDestroy {
   private pendingLogin = false;
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private cdr = inject(ChangeDetectorRef);
+  private readonly storageKey = 'race-control-access-key';
 
   connected = false;
   sessionStatus: SessionStatus = 'notStarted';
@@ -37,6 +38,8 @@ export class RaceControl implements OnInit, OnDestroy {
   accessKey = '';
 
   ngOnInit(): void {
+    this.accessKey = localStorage.getItem(this.storageKey) ?? '';
+
     this.socket = io({
       autoConnect: false,
       reconnection: true,
@@ -96,12 +99,22 @@ export class RaceControl implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+
+    if (this.accessKey) {
+      this.connect();
+    }
   }
 
   connect(): void {
+
+    const trimmedAccessKey = this.accessKey.trim();
+
     if (!this.accessKey.trim() || this.isConnecting) {
       return;
     }
+
+    this.accessKey = trimmedAccessKey;
+    localStorage.setItem(this.storageKey, this.accessKey);
 
     this.isConnecting = true;
     this.authError = '';

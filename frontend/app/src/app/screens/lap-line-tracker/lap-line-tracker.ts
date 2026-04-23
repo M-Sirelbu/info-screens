@@ -24,6 +24,7 @@ export class LapLineTracker implements OnInit, OnDestroy {
   private pendingLogin = false;
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private cdr = inject(ChangeDetectorRef);
+  private readonly storageKey = 'lap-line-tracker-access-key';
 
   carNumbers: number[] = [];
 
@@ -38,6 +39,8 @@ export class LapLineTracker implements OnInit, OnDestroy {
   private hasRaceProgressed = false;
 
   ngOnInit(): void {
+    this.accessKey = localStorage.getItem(this.storageKey) ?? '';
+
     this.socket = io({
       autoConnect: false,
       reconnection: true,
@@ -122,9 +125,15 @@ export class LapLineTracker implements OnInit, OnDestroy {
   }
 
   connect(): void {
+
+    const trimmedAccessKey = this.accessKey.trim();
+
     if (!this.accessKey.trim() || this.isConnecting) {
       return;
     }
+
+    this.accessKey = trimmedAccessKey;
+    localStorage.setItem(this.storageKey, this.accessKey);
 
     this.isConnecting = true;
     this.authError = '';
