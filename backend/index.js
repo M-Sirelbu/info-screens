@@ -193,7 +193,8 @@ function broadcastSessionStatus() {
 
 function broadcastFlagChanged() {
     const flag = repository.currentRace.flag;
-
+    
+    io.to("lap-line-tracker").emit("flagChanged", { flag: flag });
     io.to("race-control").emit("flagChanged", { flag: flag });
     io.to("leader-board").emit("flagChanged", { flag: flag });
     io.to("race-flags").emit("flagChanged", { flag: flag });

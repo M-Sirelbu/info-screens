@@ -72,6 +72,7 @@ module.exports = function onConnection (socket, repository, room) {
             }
             break;
         case "lap-line-tracker":
+            socket.emit("flagChanged", { flag: repository.currentRace.flag });
             socket.emit("sessionStatus", { status: status });
             socket.emit("sessionUpdate", {
                 sessionId: repository.currentRace.sessionId,

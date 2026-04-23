@@ -19,6 +19,7 @@ type SessionUpdatePayload = {
   styleUrl: './lap-line-tracker.scss',
 })
 export class LapLineTracker implements OnInit, OnDestroy {
+  currentFlag: string = 'red';
   private socket!: Socket;
   private pendingLogin = false;
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -43,6 +44,11 @@ export class LapLineTracker implements OnInit, OnDestroy {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       timeout: 5000
+    });
+
+    this.socket.on('flagChanged', (args: { flag: string }) => {
+      this.currentFlag = args.flag;
+      this.cdr.detectChanges();
     });
 
     this.socket.on('connect', () => {
@@ -143,7 +149,7 @@ export class LapLineTracker implements OnInit, OnDestroy {
   }
 
   get canRecordLaps(): boolean {
-    return this.isAuthenticated && this.isConnected && this.sessionStatus !== 'notStarted';
+    return this.isAuthenticated && this.isConnected && this.sessionStatus !== 'notStarted' && this.currentFlag !== 'red';
   }
 
   trackByCarNumber(_index: number, carNumber: number): number {
