@@ -10,7 +10,8 @@
 
     <div class="countdown-display">
       <ng-container *ngIf="countdown !== null; else idleState">
-        <h2 class="countdown-value">{{ countdown }}</h2>
+        <p class="countdown-label">Race starts in</p>
+        <h2 class="countdown-value">{{ countdown }}s</h2>
       </ng-container>
 
       <ng-template #idleState>
