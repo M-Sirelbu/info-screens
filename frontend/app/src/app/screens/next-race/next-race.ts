@@ -49,12 +49,11 @@ export class NextRace implements OnInit, OnDestroy {
     });
 
     this.socket.on('sessionStatus', (args: { status: 'notStarted' | 'active' | 'finished' }) => {
-      this.showPaddockPrompt = args.status === 'finished';
+      this.showPaddockPrompt = args.status === 'notStarted';
       this.cdr.detectChanges();
     });
 
     this.socket.on('sessionEnded', () => {
-      this.showPaddockPrompt = false;
       this.cdr.detectChanges();
     });
 
